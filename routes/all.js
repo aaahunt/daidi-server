@@ -158,15 +158,4 @@ router.get("/", async (req, res) => {
   }
 })
 
-// For development only - clear all users
-router.get("/clear", (req, res) => {
-  User.deleteMany({}, function (err, result) {
-    if (err) {
-      res.send(err)
-    } else {
-      res.send(result)
-    }
-  })
-})
-
 module.exports = router
