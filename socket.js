@@ -132,8 +132,6 @@ function socket(server) {
       const user = findUser(id)
       if (!user) return
 
-      console.log(socket.username + " is resinging to " + user.username)
-
       socket.to(user.socketID).emit("resignation")
     }
 
