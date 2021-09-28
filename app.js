@@ -15,6 +15,9 @@ app.use(express.json())
 app.use(BodyParser.json())
 app.use(BodyParser.urlencoded({ extended: true }))
 
+// Server static HTML files
+app.use(express.static(__dirname + "/public"))
+
 // Apply routes
 app.use("/", routes)
 

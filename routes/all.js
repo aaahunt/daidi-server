@@ -1,5 +1,6 @@
 var express = require("express")
 var router = express.Router()
+const path = require("path")
 
 // User MongoDB model
 const User = require("../models/user.model")
@@ -150,9 +151,9 @@ router.get("/user", async (req, res) => {
   }
 })
 
-// For development only - get all users
+// If accessed directly, serve 404 page
 router.get("/", async (req, res) => {
-  window.location.replace = "https://big-two.netlify.app/"
+  res.sendFile(path.join(__dirname, "../index.html"))
 })
 
 module.exports = router
