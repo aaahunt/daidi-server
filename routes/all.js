@@ -152,7 +152,7 @@ router.get("/user", async (req, res) => {
 
 // For development only - get all users
 router.get("/", async (req, res) => {
-  window.location.href = "https://big-two.netlify.app/"
+  window.location.replace = "https://big-two.netlify.app/"
 })
 
 module.exports = router
