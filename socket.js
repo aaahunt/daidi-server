@@ -38,6 +38,7 @@ function socket(server) {
     socket.on("quitter", quitter)
     socket.on("resign", resign)
     socket.on("rematch offer", rematch)
+    socket.on("emoji", emoji)
     socket.on("disconnect", () => {
       users = users.filter((user) => user.socketID !== socket.id)
     })
@@ -140,6 +141,13 @@ function socket(server) {
       if (!user) return
 
       socket.to(user.socketID).emit("rematch")
+    }
+
+    function emoji(emoji, id) {
+      const user = findUser(id)
+      if (!user) return
+
+      socket.to(user.socketID).emit("emoji", emoji)
     }
   }) // End of "on Connection" functions
 
