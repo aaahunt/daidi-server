@@ -10,7 +10,7 @@ function socket(server) {
     },
   })
 
-  // Global users array
+  // Initialise global users array
   let users = []
 
   // Pre-connection checks for username
@@ -30,39 +30,43 @@ function socket(server) {
     handleNewUser(socket)
 
     // Add listeners
+    socket.on("action", fowardAction)
     socket.on("challenge", challenge)
     socket.on("accept", accept)
-    socket.on("decline", decline)
-    socket.on("action", action)
-    socket.on("winner", winner)
-    socket.on("quitter", quitter)
-    socket.on("resign", resign)
-    socket.on("rematch offer", rematch)
+    socket.on("play", play)
     socket.on("emoji", emoji)
     socket.on("disconnect", () => {
       users = users.filter((user) => user.socketID !== socket.id)
     })
 
+    // Forward various messages to another user. i.e. Used for declining, resigning etc.
+    function fowardAction(action, id, callback) {
+      const user = findUser(id)
+      if (!user) {
+        if (callback) callback("error")
+        return
+      }
+
+      socket.to(user.socketID).emit(action)
+      if (callback) callback("success")
+    }
+
     // Challenge the player with ID, apply the callback function to the challenger
     function challenge(id, callback) {
       const user = findUser(id)
       if (!user) {
-        callback("offline")
+        callback({
+          header: "Error",
+          body: "User is offline. Please try again.",
+        })
         return
       }
 
-      // Overwriting ID variable, just for convenience of shortening emit line
-      id = socket.userID
-      socket.to(user.socketID).emit("incoming challenge", id, socket.username)
-      callback("sent")
-    }
-
-    // Decline the challenge from player with ID
-    function decline(id) {
-      const user = findUser(id)
-      if (!user) return
-
-      socket.to(user.socketID).emit("declined")
+      socket.to(user.socketID).emit("challenge", socket.userID, socket.username)
+      callback({
+        header: "Success",
+        body: "Challenge sent",
+      })
     }
 
     // Accept the challenge from player ID, apply the callback function to the acceptor
@@ -101,46 +105,15 @@ function socket(server) {
       })
     }
 
-    // Inform our opponent of our action
-    function action(action, hand, id, callback) {
+    // Inform our opponent of our played hand
+    function play(hand, id, callback) {
       const user = findUser(id)
       if (!user) {
         callback("offline")
         return
       }
-      socket.to(user.socketID).emit(action + "ed", hand)
+      socket.to(user.socketID).emit("play", hand)
       callback("success")
-    }
-
-    // Inform our opponent of our their defeat
-    function winner(id) {
-      const user = findUser(id)
-      if (!user) return
-
-      socket.to(user.socketID).emit("lost")
-    }
-
-    // Inform our opponent of our their victory via us quitting
-    function quitter(id) {
-      const user = findUser(id)
-      if (!user) return
-
-      socket.to(user.socketID).emit("quit")
-    }
-
-    // Inform our opponent of our their victory via us resigning
-    function resign(id) {
-      const user = findUser(id)
-      if (!user) return
-
-      socket.to(user.socketID).emit("resignation")
-    }
-
-    function rematch(id) {
-      const user = findUser(id)
-      if (!user) return
-
-      socket.to(user.socketID).emit("rematch")
     }
 
     function emoji(emoji, id) {

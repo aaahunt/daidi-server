@@ -22,8 +22,6 @@ router.post("/login", async (req, res) => {
 
     if (!user) return res.status(200).send("The username does not exist")
 
-    console.log("pass", req.body.password)
-
     // If user found, compare passwords
     user.comparePassword(req.body.password, (error, match) => {
       if (!match) return res.status(200).send("Invalid password")
