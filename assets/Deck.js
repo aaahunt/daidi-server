@@ -1,3 +1,6 @@
+/**
+ * Deck class used for creating deck of cards object
+ */
 class Deck {
   constructor() {
     this.deck = []
@@ -20,6 +23,7 @@ class Deck {
       "A",
       "2",
     ]
+    // Loop through each suit and rank to generate the deck oject
     for (let s in suits)
       for (let r in ranks)
         this.deck.push({
@@ -33,17 +37,30 @@ class Deck {
         })
   }
 
+  /**
+   * Shuffle Function: Uses the Fisher-Yates algorithm
+   * https://en.wikipedia.org/wiki/Fisher%E2%80%93Yates_shuffle
+   * Essentially we iterate through the unsorted array and swap each index with another random index
+   */
   shuffle() {
-    let m = this.deck.length
-    let i
-    while (m) {
-      i = Math.floor(Math.random() * m--)
-      this.deck[m] = [this.deck[i], (this.deck[i] = this.deck[m])][0]
+    let n = this.deck.length
+    while (n) {
+      // Get our random index, also decrement N
+      let i = Math.floor(Math.random() * n--)
+
+      // This scary looking line is just swapping the position of deck[n] and deck[i]
+      this.deck[n] = [this.deck[i], (this.deck[i] = this.deck[n])][0]
     }
   }
 
+  /**
+   *
+   * @param {Number} n The number of cards we want to draw from the deck object
+   * @returns {Array} N cards
+   */
   draw(n) {
     const cards = []
+    // Pop first card in the deck and push to cards array
     while (n--) cards.push(this.deck.pop())
 
     return cards
