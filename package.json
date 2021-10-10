@@ -25,6 +25,7 @@
     "express": "^4.17.1",
     "mongoose": "^6.0.4",
     "nodemon": "^2.0.13",
+    "random-word-slugs": "^0.1.5",
     "socket.io": "^4.1.3"
   }
 }

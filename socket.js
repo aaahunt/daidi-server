@@ -1,5 +1,6 @@
 function socket(server) {
   const { Server } = require("socket.io")
+  const { generateSlug } = require("random-word-slugs")
 
   // Import utility functions
   const { newHands } = require("./assets/utils.js")
@@ -28,7 +29,7 @@ function socket(server) {
   })
 
   io.on("connection", (socket) => {
-    handleNewUser(socket)
+    handleNewUser()
 
     // Add listeners
     socket.on("action", fowardAction)
@@ -37,10 +38,14 @@ function socket(server) {
     socket.on("play", play)
     socket.on("emoji", emoji)
     socket.on("disconnect", userDisconnected)
+    socket.on("create", createRoom)
+    socket.on("leave", leaveRoom)
+    socket.on("join", joinRoom)
+    socket.on("joinRooms", joinRooms)
 
     // Forward various messages to another user. i.e. Used for declining, resigning etc.
     function fowardAction(action, id, callback) {
-      const opponent = findUser(id)
+      const opponent = findUserById(id)
       if (!opponent) {
         if (callback) callback("error")
         return
@@ -52,7 +57,7 @@ function socket(server) {
 
     // Challenge the player with ID, apply the callback function to the challenger
     function challenge(id, callback) {
-      const opponent = findUser(id)
+      const opponent = findUserById(id)
       if (!opponent) {
         callback({
           header: "Error",
@@ -72,7 +77,7 @@ function socket(server) {
 
     // Accept the challenge from player ID, apply the callback function to the acceptor
     function accept(id, callback) {
-      const opponent = findUser(id)
+      const opponent = findUserById(id)
       if (!opponent) return
 
       // Create the hands to play, and determine who goes first (player with lowest ranked card)
@@ -107,7 +112,7 @@ function socket(server) {
 
     // Inform our opponent of our played hand
     function play(hand, id, callback) {
-      const opponent = findUser(id)
+      const opponent = findUserById(id)
       if (!opponent) {
         callback("offline")
         return
@@ -118,7 +123,7 @@ function socket(server) {
 
     // Emit the emoji to our opponent
     function emoji(emoji, id) {
-      const opponent = findUser(id)
+      const opponent = findUserById(id)
       if (!opponent) return
 
       socket.to(opponent.socketID).emit("emoji", emoji)
@@ -128,30 +133,73 @@ function socket(server) {
     function userDisconnected() {
       users = users.filter((user) => user.socketID !== socket.id)
     }
+
+    function createRoom(callback) {
+      let name = "room-" + generateSlug(2)
+      socket.join(name)
+
+      callback(getRooms())
+    }
+
+    function leaveRoom(name, callback) {
+      socket.leave(name)
+      callback(getRooms())
+    }
+
+    function joinRoom(room, callback) {
+      socket.join(room)
+      callback(getRooms())
+    }
+
+    function joinRooms(rooms) {
+      for (room in rooms) socket.join(room)
+    }
+
+    // Get the list of player created rooms and return as array of objects which includes name and number of players
+    function getRooms() {
+      let rooms = []
+      let socketRooms = io.of("/").adapter.rooms
+      for (let [key, value] of socketRooms) {
+        if (key.startsWith("room-")) {
+          let players = []
+          for (let socketID of value) players.push(findUserBySocket(socketID))
+          rooms.push({ name: key, players })
+        }
+      }
+      console.log(rooms)
+      return rooms
+    }
+
+    // Utility function to add new user to global list and emit to others
+    function handleNewUser() {
+      // Add newly connected user to users list
+      users.push({
+        socketID: socket.id,
+        userID: socket.userID,
+        username: socket.username,
+      })
+
+      // Emit list to newly connected user
+      socket.emit("data", users, getRooms())
+
+      // tell everyone else we are here
+      socket.broadcast.emit("user connected", {
+        userID: socket.userID,
+        username: socket.username,
+      })
+    }
   }) // End of "on Connection" functions
 
-  // Utility function to add new user to global list and emit to others
-  function handleNewUser(socket) {
-    // Add newly connected user to users list
-    users.push({
-      socketID: socket.id,
-      userID: socket.userID,
-      username: socket.username,
-    })
-
-    // Emit list to newly connected user
-    socket.emit("users", users)
-
-    // tell everyone else we are here
-    socket.broadcast.emit("user connected", {
-      userID: socket.userID,
-      username: socket.username,
-    })
+  // Utility function to find a user by ID
+  function findUserById(id) {
+    return users.find((user) => user.userID === id)
   }
 
-  // Utility function to find a user from the global list of users
-  function findUser(id) {
-    return users.find((user) => user.userID === id)
+  // Utility function to find a user by socket ID
+  function findUserBySocket(socketID) {
+    let user = users.find((user) => user.socketID === socketID)
+    if (user) return user.username
+    return null
   }
 }
 module.exports = socket
