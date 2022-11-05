@@ -33,10 +33,10 @@ connection.once("open", () => {
  * Normalize a port into a number, string, or false.
  */
 function normalizePort(val) {
-  var port = parseInt(val, 10)
+  var portNum = parseInt(val, 10)
 
-  if (isNaN(port)) return val
-  if (port >= 0) return port
+  if (isNaN(portNum)) return val
+  if (portNum >= 0) return portNum
 
   return false
 }
