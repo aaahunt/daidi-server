@@ -25,11 +25,9 @@ function newHands(numberOfCards) {
  * @return {Object}                  Returns an array of sorted hand objects
  */
 function sort(Hand) {
-  Hand.sort((card1, card2) => {
-    if (card1.value < card2.value) return -1
-    return 1
+  return Hand.sort((card1, card2) => {
+    return (card1.value < card2.value) ? -1 : 1
   })
-  return Hand
 }
 
 module.exports = { newHands }

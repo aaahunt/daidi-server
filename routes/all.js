@@ -6,6 +6,7 @@ const path = require("path")
 const User = require("../models/user.model")
 
 router.post("/register", async (req, res) => {
+  res.set('Access-Control-Allow-Origin', '*')
   try {
     var request = new User(req.body)
     var user = await request.save()
@@ -16,6 +17,7 @@ router.post("/register", async (req, res) => {
 })
 
 router.post("/login", async (req, res) => {
+  res.set('Access-Control-Allow-Origin', '*')
   try {
     // Search for the user
     var user = await User.findOne({ username: req.body.username }).exec()
@@ -34,6 +36,7 @@ router.post("/login", async (req, res) => {
 
 // Route for allowing user to increment his points in the database
 router.post("/win", async (req, res) => {
+  res.set('Access-Control-Allow-Origin', '*')
   try {
     // Get our record
     var record = await User.findOne({
@@ -130,6 +133,7 @@ router.post("/win", async (req, res) => {
 
 // Route list of games that user has played
 router.get("/games", async (req, res) => {
+  res.set('Access-Control-Allow-Origin', '*')
   try {
     var result = await User.findOne({ _id: req.query.id }).exec()
     if (result.games.length < 1)
