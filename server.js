@@ -1,22 +1,22 @@
-var app = require("./app")
-var http = require("http")
+const app = require("./app")
+const http = require("http")
 
 // dotenv module required to access .env variables
 require("dotenv").config()
 
 // Get port from environment and store in Express.
-var port = normalizePort(process.env.PORT || "4000")
+const port = normalizePort(process.env.PORT || "4000")
 app.set("port", port)
 
 // Create HTTP server.
-var server = http.createServer(app)
+const server = http.createServer(app)
 
 // Listen on provided port, on all network interfaces.
 server.listen(port)
 server.on("listening", onListening)
 
 // Functionality for socket interactions
-var socket = require("./socket.js")
+const socket = require("./socket.js")
 socket(server)
 
 // Functionality for interacting with MongoDB
@@ -33,7 +33,7 @@ connection.once("open", () => {
  * Normalize a port into a number, string, or false.
  */
 function normalizePort(val) {
-  var portNum = parseInt(val, 10)
+  let portNum = parseInt(val, 10)
 
   if (isNaN(portNum)) return val
   if (portNum >= 0) return portNum
@@ -45,7 +45,7 @@ function normalizePort(val) {
  * Event listener for HTTP server "listening" event.
  */
 function onListening() {
-  var addr = server.address()
-  var bind = typeof addr === "string" ? "pipe " + addr : "port " + addr.port
+  const addr = server.address()
+  let bind = typeof addr === "string" ? "pipe " + addr : "port " + addr.port
   console.log("Listening on " + bind + "...")
 }
