@@ -152,9 +152,9 @@ function socket(server) {
     }
 
     function joinRooms(rooms) {
-      rooms.forEach(room => {
+      rooms.forEach((room) => {
         socket.join(room)
-      });
+      })
     }
 
     // Get the list of player created rooms and return as array of objects which includes name and number of players
