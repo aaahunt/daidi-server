@@ -1,5 +1,5 @@
-var express = require("express")
-var router = express.Router()
+let express = require("express")
+let router = express.Router()
 const path = require("path")
 
 // User MongoDB model
@@ -8,8 +8,8 @@ const User = require("../models/user.model")
 router.post("/register", async (req, res) => {
   res.set('Access-Control-Allow-Origin', '*')
   try {
-    var request = new User(req.body)
-    var user = await request.save()
+    let request = new User(req.body)
+    let user = await request.save()
     res.status(200).send({ user })
   } catch (error) {
     res.status(400).send()
@@ -20,7 +20,7 @@ router.post("/login", async (req, res) => {
   res.set('Access-Control-Allow-Origin', '*')
   try {
     // Search for the user
-    var user = await User.findOne({ username: req.body.username }).exec()
+    let user = await User.findOne({ username: req.body.username }).exec()
 
     if (!user) return res.status(200).send("The username does not exist")
 
@@ -39,12 +39,12 @@ router.post("/win", async (req, res) => {
   res.set('Access-Control-Allow-Origin', '*')
   try {
     // Get our record
-    var record = await User.findOne({
+    let record = await User.findOne({
       _id: req.body.id,
     }).exec()
 
     // Get opponent record
-    var opponent = await User.findOne({
+    let opponent = await User.findOne({
       _id: req.body.opponent,
     }).exec()
 
@@ -135,7 +135,7 @@ router.post("/win", async (req, res) => {
 router.get("/games", async (req, res) => {
   res.set('Access-Control-Allow-Origin', '*')
   try {
-    var result = await User.findOne({ _id: req.query.id }).exec()
+    let result = await User.findOne({ _id: req.query.id }).exec()
     if (result.games.length < 1)
       return res.status(204).send({ message: "No games found" })
     res.send(result.games)
@@ -146,7 +146,7 @@ router.get("/games", async (req, res) => {
 
 router.get("/user", async (req, res) => {
   try {
-    var result = await User.find({ _id: req.query.id }).exec()
+    let result = await User.find({ _id: req.query.id }).exec()
     res.send(result)
   } catch (error) {
     res.status(500).send(error)

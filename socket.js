@@ -38,9 +38,9 @@ function socket(server) {
     socket.on("play", play)
     socket.on("emoji", emoji)
     socket.on("disconnect", userDisconnected)
-    socket.on("create", createRoom)
-    socket.on("leave", leaveRoom)
-    socket.on("join", joinRoom)
+    socket.on("createRoom", createRoom)
+    socket.on("leaveRoom", leaveRoom)
+    socket.on("joinRoom", joinRoom)
     socket.on("joinRooms", joinRooms)
 
     // Forward various messages to another user. i.e. Used for declining, resigning etc.
@@ -152,7 +152,9 @@ function socket(server) {
     }
 
     function joinRooms(rooms) {
-      for (room in rooms) socket.join(room)
+      rooms.forEach(room => {
+        socket.join(room)
+      });
     }
 
     // Get the list of player created rooms and return as array of objects which includes name and number of players
@@ -180,7 +182,7 @@ function socket(server) {
       })
 
       // Emit list to newly connected user
-      socket.emit("data", users, getRooms())
+      socket.emit("users", users, getRooms())
 
       // tell everyone else we are here
       socket.broadcast.emit("user connected", {
