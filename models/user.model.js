@@ -1,8 +1,7 @@
 const mongoose = require("mongoose")
-const Schema = mongoose.Schema
 const Bcrypt = require("bcryptjs")
 
-const userSchema = new Schema(
+const userSchema = new mongoose.Schema(
   {
     username: {
       type: String,
@@ -27,6 +26,7 @@ const userSchema = new Schema(
   },
   {
     timestamps: true,
+    collection: "users", // redundant, but good to be explicit
   }
 )
 
