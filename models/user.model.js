@@ -15,6 +15,9 @@ const userSchema = new mongoose.Schema(
       type: String,
       required: true,
     },
+    refresh_token: {
+      type: String,
+    },
     games: [
       {
         opponent_id: String,

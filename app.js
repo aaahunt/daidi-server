@@ -11,8 +11,11 @@ var routes = require("./routes/all")
 const app = express()
 
 // Apply middleware
-app.use(cors())
 app.use(express.json())
+
+const corsOptions = require("./config/corsOptions")
+app.use(cors(corsOptions))
+
 app.use(BodyParser.json())
 app.use(BodyParser.urlencoded({ extended: true }))
 
