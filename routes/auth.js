@@ -12,40 +12,7 @@ const path = require("path")
 // User MongoDB model
 const User = require("../models/user.model")
 
-router.post("/register", async (req, res) => {
-  try {
-    const { username, password } = req.body
-  } catch (error) {
-    res.sendStatus(400)
-  }
-
-  try {
-    const existing_user = await User.findOne({ username })
-    if (existing_user) return res.status(409).send("Username already exists")
-
-    const new_user_request = new User(req.body)
-    const new_user = await new_user_request.save()
-
-    res.sendStatus(200)
-  } catch (error) {
-    res.sendStatus(500)
-  }
-})
-
-router.post("/login", async (req, res) => {
-  const { username, password } = req.body
-
-  try {
-    let user = await User.findOne({ username }).exec()
-    if (!user) return res.status(200).send("The username does not exist")
-
-    handleLogin(user, password, res)
-  } catch (error) {
-    res.status(500).send(error)
-  }
-})
-
-router.get("/auth", verifyJWT, async (req, res) => {
+router.get("/", async (req, res) => {
   try {
     let user = await User.findOne({ _id: req.user_id }).exec()
     if (!user) return res.status(200).send("The username does not exist")
@@ -55,9 +22,24 @@ router.get("/auth", verifyJWT, async (req, res) => {
   }
 })
 
+router.post("/logout", async (req, res) => {
+  try {
+    let result = await User.updateOne(
+      { _id: req.user_id },
+      {
+        $set: {
+          access_token: "",
+        },
+      }
+    ).exec()
+    res.send(result)
+  } catch (error) {
+    res.sendStatus(500)
+  }
+})
+
 // Route for allowing user to increment his points in the database
 router.post("/win", async (req, res) => {
-  // res.set("Access-Control-Allow-Origin", "*")
   try {
     // Get our record
     let record = await User.findOne({
@@ -153,7 +135,7 @@ router.post("/win", async (req, res) => {
 })
 
 // Route list of games that user has played
-router.get("/games", verifyJWT, async (req, res) => {
+router.get("/games", async (req, res) => {
   try {
     let result = await User.findOne({ _id: req.user_id }).exec()
     if (result.games.length < 1)
@@ -162,45 +144,6 @@ router.get("/games", verifyJWT, async (req, res) => {
   } catch (error) {
     res.status(500).send(error)
   }
-})
-
-router.get("/user", async (req, res) => {
-  try {
-    let result = await User.find({ _id: req.query.user_id }).exec()
-    res.send(result)
-  } catch (error) {
-    res.status(500).send(error)
-  }
-})
-
-router.get("/users", async (req, res) => {
-  try {
-    let result = await User.find().exec()
-    res.send(result)
-  } catch (error) {
-    res.status(500).send(error)
-  }
-})
-
-router.get("/clear", async (req, res) => {
-  try {
-    let result = await User.updateMany(
-      {},
-      {
-        $set: {
-          games: [],
-        },
-      }
-    ).exec()
-    res.send(result)
-  } catch (error) {
-    res.status(500).send(error)
-  }
-})
-
-// If accessed directly, serve 404 page
-router.get("/", async (req, res) => {
-  res.sendFile(path.join(__dirname, "../index.html"))
 })
 
 module.exports = router

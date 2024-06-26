@@ -1,28 +1,17 @@
-const express = require("express")
-
-// Import middleware
+var express = require("express")
 const cors = require("cors")
-const BodyParser = require("body-parser")
+const { verifyJWT } = require("./controllers/authController")
 
-// Routes
-var routes = require("./routes/all")
+var app = express()
 
-// Initialise
-const app = express()
+app.use(cors(require("./config/corsOptions")))
+app.use(logger("dev"))
 
-// Apply middleware
 app.use(express.json())
+app.use(express.urlencoded({ extended: false }))
 
-const corsOptions = require("./config/corsOptions")
-app.use(cors(corsOptions))
-
-app.use(BodyParser.json())
-app.use(BodyParser.urlencoded({ extended: true }))
-
-// Serve static HTML files
-app.use(express.static(__dirname + "/public"))
-
-// Apply routes
-app.use("/", routes)
+app.use("/", require("./routes/index"))
+app.use(verifyJWT)
+app.use("/auth", require("./routes/auth"))
 
 module.exports = app

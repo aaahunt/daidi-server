@@ -1,11 +1,13 @@
-const app = require("./app")
+#!/usr/bin/env node
+
+const app = require("../app")
 const http = require("http")
 
 // dotenv module required to access .env variables
 require("dotenv").config()
 
 // Get port from environment and store in Express.
-const port = normalizePort(process.env.PORT || "4000")
+var port = normalizePort(process.env.PORT || "4000")
 app.set("port", port)
 
 // Create HTTP server.
@@ -16,7 +18,7 @@ server.listen(port)
 server.on("listening", onListening)
 
 // Functionality for socket interactions
-const socket = require("./socket.js")
+const socket = require("../socket.js")
 socket(server)
 
 // Functionality for interacting with MongoDB
@@ -25,13 +27,8 @@ const uri = process.env.ATLAS_URI
 mongoose.connect(uri)
 
 const connection = mongoose.connection
-connection.once("open", () => {
-  console.log("Connected to MongoDB")
-})
+connection.once("open", () => console.log("Connected to MongoDB"))
 
-/**
- * Normalize a port into a number, string, or false.
- */
 function normalizePort(val) {
   let portNum = parseInt(val, 10)
 
@@ -41,9 +38,6 @@ function normalizePort(val) {
   return false
 }
 
-/**
- * Event listener for HTTP server "listening" event.
- */
 function onListening() {
   const addr = server.address()
   let bind = typeof addr === "string" ? "pipe " + addr : "port " + addr.port
