@@ -1,12 +1,13 @@
-var config = {};
+var config = {}
 
 config.ROOM = {
-  NAME_OPTIONS: {
-    partsOfSpeech: ["adjective", "adjective", "noun"],
-    categories: {
-      adjective: ["color", "appearance"],
-    },
-  },
-};
+  ROOMS: ["diamond", "club", "heart", "spade"],
+}
 
-module.exports = config;
+config.GAME = {
+  TOP_MULTIPLIER: 3,
+  MIDDLE_MULTIPLIER: 2,
+  BOTTOM_MULTIPLIER: 1,
+}
+
+module.exports = config

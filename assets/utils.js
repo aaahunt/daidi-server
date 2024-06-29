@@ -1,4 +1,5 @@
 const Deck = require("./Deck.js")
+const config = require("./config")
 
 /**
  * Generates an array of exactly two sorted objects of N cards to make up a hand.
@@ -26,8 +27,19 @@ function newHands(numberOfCards) {
  */
 function sort(Hand) {
   return Hand.sort((card1, card2) => {
-    return (card1.value < card2.value) ? -1 : 1
+    return card1.value < card2.value ? -1 : 1
   })
+}
+
+/**
+ * Determines the number of points a hand is worth
+ */
+function determinePoints(cards) {
+  return cards === 13
+    ? cards * config.GAME.TOP_MULTIPLIER
+    : cards > 9
+    ? cards * config.GAME.MIDDLE_MULTIPLIER
+    : cards * config.GAME.BOTTOM_MULTIPLIER
 }
 
 module.exports = { newHands }

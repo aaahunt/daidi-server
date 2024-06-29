@@ -1,15 +1,9 @@
-// JWT and bcrypt for authentication
-const jwt = require("jsonwebtoken")
-const bcrypt = require("bcryptjs")
-require("dotenv").config()
-
 const { handleLogin, verifyJWT } = require("../controllers/authController")
 
 let express = require("express")
 let router = express.Router()
 const path = require("path")
 
-// User MongoDB model
 const User = require("../models/user.model")
 
 router.post("/register", async (req, res) => {

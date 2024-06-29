@@ -8,7 +8,7 @@ const handleLogin = async (user, password, res) => {
     if (!match) return res.status(200).send("Invalid password")
 
     const access_token = jwt.sign(
-      { user_id: user._id },
+      { user_id: user._id, username: user.username },
       process.env.ACCESS_TOKEN_SECRET,
       { expiresIn: "1d" }
     )
@@ -31,6 +31,7 @@ const verifyJWT = (req, res, next) => {
       if (err)
         return res.status(403).json({ message: "Invalid token, access denied" })
       req.user_id = decoded.user_id
+      req.username = decoded.username
       next()
     })
   } catch (err) {

@@ -1,4 +1,3 @@
-// JWT and bcrypt for authentication
 const jwt = require("jsonwebtoken")
 const bcrypt = require("bcryptjs")
 require("dotenv").config()
@@ -9,7 +8,6 @@ let express = require("express")
 let router = express.Router()
 const path = require("path")
 
-// User MongoDB model
 const User = require("../models/user.model")
 
 router.get("/", async (req, res) => {
@@ -38,33 +36,25 @@ router.post("/logout", async (req, res) => {
   }
 })
 
-// Route for allowing user to increment his points in the database
 router.post("/win", async (req, res) => {
   try {
-    // Get our record
-    let record = await User.findOne({
-      _id: req.body.user_id,
-    }).exec()
+    console.log(req.body)
+    let winner = await User.findOne({ _id: req.user_id }).exec()
+    let opponent = await User.findOne({ _id: req.body.opponent }).exec()
 
-    // Get opponent record
-    let opponent = await User.findOne({
-      _id: req.body.opponent,
-    }).exec()
-
-    // If there is no users with that ID, return
-    if (!record || !opponent)
+    if (!winner || !opponent)
       return res.status(400).send({ message: "Invalid user ID" })
 
     // First see if there is a record of a game between the two players.
-    let gameID
-    Object.entries(record.games).forEach(([key, value]) => {
-      if (value.opponent_id === req.body.opponent) gameID = value._id
+    let existing_game = null
+    Object.entries(winner.games).forEach(([key, value]) => {
+      if (value.opponent_id === req.body.opponent) existing_game = value._id
     })
 
     // Update existing game record
-    if (gameID) {
+    if (existing_game) {
       User.updateOne(
-        { "games._id": gameID },
+        { "games._id": existing_game },
         {
           $inc: {
             "games.$.our_score": req.body.points,
@@ -90,7 +80,6 @@ router.post("/win", async (req, res) => {
     }
     // Create new game record
     else {
-      // Create our record
       const ourRecord = {
         opponent_id: opponent._id,
         opponent_name: opponent.username,
@@ -110,8 +99,8 @@ router.post("/win", async (req, res) => {
 
       // Create opponent record
       const theirRecord = {
-        opponent_id: record._id,
-        opponent_name: record.username,
+        opponent_id: winner._id,
+        opponent_name: winner.username,
         opponent_score: req.body.points,
         our_score: 0,
       }

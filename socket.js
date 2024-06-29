@@ -2,8 +2,9 @@ function socket(server) {
   const { Server } = require("socket.io")
   const jwt = require("jsonwebtoken")
 
-  const { generateSlug, totalUniqueSlugs } = require("random-word-slugs")
   const { newHands } = require("./assets/utils.js")
+  const CompletedGame = require("./models/completedGame.model")
+
   const config = require("./assets/config")
 
   // create IO object, allow all CORS requests
@@ -16,23 +17,20 @@ function socket(server) {
 
   // Pre-connection checks for username
   io.use((socket, next) => {
-    const id = socket.handshake.auth.user_id
-    const username = socket.handshake.auth.username
-    const token = socket.handshake.auth.access_token
+    const token = socket.handshake.auth.token
+    if (!token) return next(new Error("invalid token"))
 
     jwt.verify(token, process.env.ACCESS_TOKEN_SECRET, (err, decoded) => {
       if (err) return next(new Error("invalid token"))
+      socket.user_id = decoded.user_id
+      socket.username = decoded.username
     })
-
-    if (!id || !username) return next(new Error("invalid credentials"))
-
-    socket.user_id = id
-    socket.username = username
 
     next()
   })
 
   io.on("connection", (socket) => {
+    console.log(`${socket.username} connected`)
     handleNewUser(socket)
 
     // Add listeners
@@ -42,6 +40,7 @@ function socket(server) {
     socket.on("challenge", (id, callback) => challenge(socket, id, callback))
     socket.on("accept", (id, callback) => accept(socket, id, callback))
     socket.on("play", (hand, id, callback) => play(socket, hand, id, callback))
+    socket.on("resign", (id, callback) => resign(socket, id, callback))
     socket.on("emoji", (emoji, id) => sendEmoji(socket, emoji, id))
     socket.on("createRoom", (callback) => createRoom(socket, callback))
     socket.on("leaveRoom", (name, callback) =>
@@ -63,7 +62,7 @@ function socket(server) {
     })
 
     // Emit list to newly connected user
-    socket.emit("users", users, getRooms())
+    socket.emit("rooms", getRooms())
 
     // tell everyone else we are here
     socket.broadcast.emit("user connected", {
@@ -91,7 +90,10 @@ function socket(server) {
 
   // Get the list of player created rooms and return as array of objects which includes name and number of players
   function getRooms() {
-    let rooms = []
+    let rooms = config.ROOM.ROOMS.map((room) => {
+      return { name: room, players: [] }
+    })
+
     let socketRooms = io.of("/").adapter.rooms
 
     outter: for (let [key, value] of socketRooms) {
@@ -100,8 +102,12 @@ function socket(server) {
         if (key == socketID) continue outter
         players.push(findUserBySocket(socketID))
       }
-      rooms.push({ name: key, players })
+      players.forEach((player) => {
+        const room = rooms.find((room) => room.name === key)
+        room.players.push(player)
+      })
     }
+    console.log(rooms)
 
     return rooms
   }
@@ -119,16 +125,6 @@ function socket(server) {
   function joinRoom(socket, room, callback) {
     socket.join(room)
     callback(getRooms())
-  }
-
-  function createRoom(socket, callback) {
-    let roomName
-    do {
-      roomName = generateSlug(3, config.ROOM.NAME_OPTIONS)
-    } while (typeof getRoom(roomName) != "undefined")
-
-    socket.join(roomName)
-    callback(roomName, getRooms())
   }
 
   // Inform our opponent of our played hand
@@ -179,6 +175,11 @@ function socket(server) {
     if (callback) callback("success")
   }
 
+  function resign(socket, id, callback) {
+    const opponent = findUserById(id)
+    if (!opponent) return
+  }
+
   // Challenge the player with ID, apply the callback function to the challenger
   function challenge(socket, id, callback) {
     const opponent = findUserById(id)
@@ -199,12 +200,10 @@ function socket(server) {
     })
   }
 
-  // Utility function to find a user by ID
   function findUserById(id) {
     return users.find((user) => user.user_id === id)
   }
 
-  // Utility function to find a user by socket ID
   function findUserBySocket(socketID) {
     return users.find((user) => user.socketID === socketID)
   }
