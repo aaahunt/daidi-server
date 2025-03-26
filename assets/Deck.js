@@ -1,40 +1,26 @@
+import Card from "./Card.js"
+
 /**
- * Deck class used for creating deck of cards object
+ * Deck Class: Represents a deck of 52 playing cards
+ *
+ * @param {Boolean} shuffled - Whether the deck should be shuffled initially
+ * @returns {Deck} - A new deck object
  */
-class Deck {
-  constructor() {
+export default class Deck {
+  constructor(shuffled = true) {
     this.deck = []
-    const suitValues = [0, 0.25, 0.5, 0.75]
-    const suitAscii = ["♦", "♣", "♥", "♠"]
     const suits = ["diamond", "club", "heart", "spade"]
-    const rankValues = [3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15]
-    const ranks = [
-      "3",
-      "4",
-      "5",
-      "6",
-      "7",
-      "8",
-      "9",
-      "T",
-      "J",
-      "Q",
-      "K",
-      "A",
-      "2",
-    ]
-    // Loop through each suit and rank to generate the deck oject
-    for (let s in suits)
-      for (let r in ranks)
-        this.deck.push({
-          rank: ranks[r],
-          rankValue: rankValues[r],
-          suit: suits[s],
-          suitAscii: suitAscii[s],
-          suitValue: suitValues[s],
-          value: rankValues[r] + suitValues[s],
-          display: `${ranks[r]}${suits[s].charAt(0)}`,
-        })
+    const ranks = ["2", "3", "4", "5", "6", "7", "8", "9", "10", "J", "Q", "K", "A"]
+
+    for (let suit of suits) {
+      for (let rank of ranks) {
+        this.deck.push(new Card(suit, rank))
+      }
+    }
+
+    if (shuffled) {
+      this.shuffle()
+    }
   }
 
   /**
@@ -48,23 +34,26 @@ class Deck {
       // Get our random index, also decrement N
       let i = Math.floor(Math.random() * n--)
 
-      // This scary looking line is just swapping the position of deck[n] and deck[i]
+      // swap the position of deck[n] and deck[i]
       this.deck[n] = [this.deck[i], (this.deck[i] = this.deck[n])][0]
     }
   }
 
   /**
    *
-   * @param {Number} n The number of cards we want to draw from the deck object
+   * @param {Integer} n The number of cards we want to draw from the deck object
    * @returns {Array} N cards
    */
   draw(n) {
     const cards = []
-    // Pop first card in the deck and push to cards array
-    while (n--) cards.push(this.deck.pop())
+    while (n--) {
+      let card = this.deck.pop()
+      if (!card) {
+        throw new Error("Not enough cards in the deck, you requested " + n + " but the deck only had " + cards.length)
+      }
+      cards.push(card)
+    }
 
     return cards
   }
 }
-
-module.exports = Deck

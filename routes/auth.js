@@ -1,14 +1,14 @@
-const jwt = require("jsonwebtoken")
-const bcrypt = require("bcryptjs")
-require("dotenv").config()
+import jwt from "jsonwebtoken"
+import bcrypt from "bcryptjs"
+import dotenv from "dotenv"
+import express from "express"
+import path from "path"
 
-const { handleLogin, verifyJWT } = require("../controllers/authController")
+import { handleLogin, verifyJWT } from "../controllers/authController.js"
+import User from "../models/user.model.js"
 
-let express = require("express")
-let router = express.Router()
-const path = require("path")
-
-const User = require("../models/user.model")
+dotenv.config()
+const router = express.Router()
 
 router.get("/", async (req, res) => {
   try {
@@ -42,8 +42,7 @@ router.post("/win", async (req, res) => {
     let winner = await User.findOne({ _id: req.user_id }).exec()
     let opponent = await User.findOne({ _id: req.body.opponent }).exec()
 
-    if (!winner || !opponent)
-      return res.status(400).send({ message: "Invalid user ID" })
+    if (!winner || !opponent) return res.status(400).send({ message: "Invalid user ID" })
 
     // First see if there is a record of a game between the two players.
     let existing_game = null
@@ -127,12 +126,11 @@ router.post("/win", async (req, res) => {
 router.get("/games", async (req, res) => {
   try {
     let result = await User.findOne({ _id: req.user_id }).exec()
-    if (result.games.length < 1)
-      return res.status(204).send({ message: "No games found" })
+    if (result.games.length < 1) return res.status(204).send({ message: "No games found" })
     res.send(result.games)
   } catch (error) {
     res.status(500).send(error)
   }
 })
 
-module.exports = router
+export default router

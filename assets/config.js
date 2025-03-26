@@ -10,4 +10,4 @@ config.GAME = {
   BOTTOM_MULTIPLIER: 1,
 }
 
-module.exports = config
+export default config

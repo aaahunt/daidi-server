@@ -1,4 +1,4 @@
-const mongoose = require("mongoose")
+import mongoose from "mongoose"
 
 const completedGameSchema = new mongoose.Schema(
   {
@@ -22,4 +22,4 @@ const completedGameSchema = new mongoose.Schema(
 
 const CompletedGame = mongoose.model("CompletedGame", completedGameSchema)
 
-module.exports = CompletedGame
+export default CompletedGame

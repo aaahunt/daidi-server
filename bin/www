@@ -1,33 +1,31 @@
 #!/usr/bin/env node
 
-const app = require("../app")
-const http = require("http")
+import http from "http"
+import mongoose from "mongoose"
+import dotenv from "dotenv"
 
-// dotenv module required to access .env variables
-require("dotenv").config()
+import app from "../app.js"
+import socket from "../socket.js"
 
-// Get port from environment and store in Express.
+dotenv.config()
+
 var port = normalizePort(process.env.PORT || "4000")
 app.set("port", port)
 
-// Create HTTP server.
 const server = http.createServer(app)
 
-// Listen on provided port, on all network interfaces.
 server.listen(port)
 server.on("listening", onListening)
 
-// Functionality for socket interactions
-const socket = require("../socket.js")
 socket(server)
 
 // Functionality for interacting with MongoDB
-const mongoose = require("mongoose")
 const uri = process.env.ATLAS_URI
 mongoose.connect(uri)
+mongoose.set("strictQuery", false)
 
 const connection = mongoose.connection
-connection.once("open", () => console.log("Connected to MongoDB"))
+connection.once("open", () => console.log("Connected to db"))
 
 function normalizePort(val) {
   let portNum = parseInt(val, 10)

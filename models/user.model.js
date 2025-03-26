@@ -1,5 +1,5 @@
-const mongoose = require("mongoose")
-const Bcrypt = require("bcryptjs")
+import mongoose from "mongoose"
+import Bcrypt from "bcryptjs"
 
 const userSchema = new mongoose.Schema(
   {
@@ -47,6 +47,4 @@ userSchema.methods.comparePassword = function (plaintext, callback) {
 
 userSchema.index({ username: "text" })
 
-const User = mongoose.model("User", userSchema)
-
-module.exports = User
+export default mongoose.model("User", userSchema)
