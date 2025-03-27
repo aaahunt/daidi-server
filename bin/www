@@ -5,11 +5,15 @@ import mongoose from "mongoose"
 import dotenv from "dotenv"
 
 import app from "../app.js"
-import socket from "../sockets/socket.js"
+import { Server } from "socket.io"
+import jwt from "jsonwebtoken"
+
+import gameSocketHandler from "../sockets/gameSocketHandler.js"
+import authMiddleware from "../middlewares/authMiddleware.js"
 
 dotenv.config()
 
-var port = normalizePort(process.env.PORT || "4000")
+const port = normalizePort(process.env.PORT || "4000")
 app.set("port", port)
 
 const server = http.createServer(app)
@@ -17,9 +21,17 @@ const server = http.createServer(app)
 server.listen(port)
 server.on("listening", onListening)
 
-socket(server)
+// create IO object, allow all CORS requests
+const io = new Server(server, {
+  cors: { origin: "*" },
+})
 
-// Functionality for interacting with MongoDB
+io.use(authMiddleware)
+
+io.on("connection", (socket) => {
+  gameSocketHandler(socket, io)
+})
+
 const uri = process.env.ATLAS_URI
 mongoose.connect(uri)
 mongoose.set("strictQuery", false)

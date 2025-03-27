@@ -1,6 +1,10 @@
 import Game from "./Game.js"
 
-const games = {}
+const games = {
+  room1: null,
+  room2: null,
+  room3: null,
+}
 
 export const joinGame = (gameId, playerId) => {
   if (!games[gameId]) {
@@ -19,10 +23,20 @@ export const playCard = (gameId, playerId, card) => {
 export const leaveGame = (playerId) => {
   // Loop over all games and remove the player
   Object.values(games).forEach((game) => {
-    game.removePlayer(playerId)
+    if (game) {
+      game.removePlayer(playerId)
+    }
   })
 }
 
-const gameManager = { joinGame, playCard, leaveGame }
+export const getGame = (gameId) => {
+  return games[gameId]
+}
+
+export const getGameIds = () => {
+  return Object.keys(games)
+}
+
+const gameManager = { joinGame, playCard, leaveGame, getGame, getGameIds }
 
 export default gameManager

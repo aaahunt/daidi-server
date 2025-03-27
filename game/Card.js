@@ -1,4 +1,4 @@
-import { rankMap, suitMap } from "./utils.js"
+import { rankMap, suitMap } from "../assets/utils.js"
 
 export default class Card {
   constructor(suit, rank) {

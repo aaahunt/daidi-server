@@ -7,27 +7,8 @@ import CompletedGame from "../models/completedGame.model.js"
 import config from "../assets/config.js"
 
 export default function socket(server) {
-  // create IO object, allow all CORS requests
-  const io = new Server(server, {
-    cors: { origin: "*" },
-  })
-
   // Initialise global users array
   let users = []
-
-  // Pre-connection checks for username
-  io.use((socket, next) => {
-    const token = socket.handshake.auth.token
-    if (!token) return next(new Error("invalid token"))
-
-    jwt.verify(token, process.env.ACCESS_TOKEN_SECRET, (err, decoded) => {
-      if (err) return next(new Error("invalid token"))
-      socket.user_id = decoded.user_id
-      socket.username = decoded.username
-    })
-
-    next()
-  })
 
   io.on("connection", (socket) => {
     console.log(`${socket.username} connected`)

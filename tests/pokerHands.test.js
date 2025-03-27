@@ -1,6 +1,6 @@
-import { determineHandClass, compareHands, pokerRank } from "../assets/handRanking.js"
-import Card from "../assets/Card.js"
-import Deck from "../assets/Deck.js"
+import { determineHandClass, compareHands, pokerRank } from "../game/handRanking.js"
+import Card from "../game/Card.js"
+import Deck from "../game/Deck.js"
 
 const royalFlush = [
   new Card("diamond", "10"),

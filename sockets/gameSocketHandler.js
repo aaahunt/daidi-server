@@ -1,7 +1,10 @@
 import gameManager from "../game/gameManager.js"
 
-export default (io, socket) => {
-  //   handleNewUser(socket)
+export default (socket, io) => {
+  console.log(`User connected: ${socket.username}`)
+
+  // Emit list to newly connected user
+  socket.emit("rooms", gameManager.getGameIds())
 
   socket.on("joinGame", ({ roomName }) => {
     gameManager.joinGame(roomName, socket.id)
@@ -16,18 +19,4 @@ export default (io, socket) => {
     gameManager.leaveGame(socket.id)
     console.log(`Socket disconnected: ${socket.id}`)
   })
-
-  // Add listeners
-  //   socket.on("action", (action, id, callback) => fowardAction(socket, action, id, callback))
-  //   socket.on("challenge", (id, callback) => challenge(socket, id, callback))
-  //   socket.on("accept", (id, callback) => accept(socket, id, callback))
-  //   socket.on("play", (hand, id, callback) => play(socket, hand, id, callback))
-  //   socket.on("resign", (id, callback) => resign(socket, id, callback))
-  //   socket.on("emoji", (emoji, id) => sendEmoji(socket, emoji, id))
-  //   socket.on("createRoom", (callback) => createRoom(socket, callback))
-  //   socket.on("leaveRoom", (name, callback) => leaveRoom(socket, name, callback))
-  //   socket.on("joinRoom", (name, callback) => joinRoom(socket, name, callback))
-  //   socket.on("disconnect", () => {
-  //     users = users.filter((user) => user.socketID !== socket.id)
-  //   })
 }

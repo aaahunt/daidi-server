@@ -1,4 +1,4 @@
-import Deck from "./Deck.js"
+import Deck from "../game/Deck.js"
 import config from "./config.js"
 
 /**
