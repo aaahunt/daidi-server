@@ -1,10 +1,10 @@
 import { Server } from "socket.io"
 import jwt from "jsonwebtoken"
 
-import { newHands } from "./assets/utils.js"
-import CompletedGame from "./models/completedGame.model.js"
+import { newHands } from "../assets/utils.js"
+import CompletedGame from "../models/completedGame.model.js"
 
-import config from "./assets/config.js"
+import config from "../assets/config.js"
 
 export default function socket(server) {
   // create IO object, allow all CORS requests
