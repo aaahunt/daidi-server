@@ -84,7 +84,7 @@ export default function socket(server) {
         room.players.push(player)
       })
     }
-    console.log(rooms)
+    console.log("old get rooms", rooms)
 
     return rooms
   }

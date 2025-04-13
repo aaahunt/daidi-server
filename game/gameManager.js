@@ -1,42 +1,68 @@
 import Game from "./Game.js"
 
-const games = {
-  room1: null,
-  room2: null,
-  room3: null,
-}
-
-export const joinGame = (gameId, playerId) => {
-  if (!games[gameId]) {
-    games[gameId] = new Game(gameId)
-  }
-  games[gameId].addPlayer(playerId)
-}
-
-export const playCard = (gameId, playerId, card) => {
-  if (!games[gameId]) {
-    return { success: false, message: "Game not found" }
-  }
-  return games[gameId].playCard(playerId, card)
-}
-
-export const leaveGame = (playerId) => {
-  // Loop over all games and remove the player
-  Object.values(games).forEach((game) => {
-    if (game) {
-      game.removePlayer(playerId)
+class GameManager {
+  constructor() {
+    this.games = {
+      diamond: new Game("diamond"),
+      club: new Game("club"),
+      heart: new Game("heart"),
+      spade: new Game("spade"),
     }
-  })
+  }
+
+  seatPlayer(roomName, seatNumber, player) {
+    // check if player is already in a game
+    for (const [gameName, game] of Object.entries(this.games)) {
+      if (game.hasPlayer(player)) {
+        return { success: false, message: `player is already seated at ${gameName}` }
+      }
+    }
+
+    // check if the room is full
+    if (this.games[roomName].isFull()) {
+      return { success: false, message: "Game is full" }
+    }
+
+    // check if seat is already taken
+    if (this.games[roomName].players[seatNumber] !== null) {
+      return { success: false, message: "Seat is already taken" }
+    }
+
+    console.log(`adding player to game ${roomName}`)
+    this.games[roomName].addPlayer(player, seatNumber)
+    return { success: true, message: "Player added to game" }
+  }
+
+  playCard(gameId, playerId, card) {
+    if (!this.games[gameId]) {
+      return { success: false, message: "Game not found" }
+    }
+
+    return this.games[gameId].playCard(playerId, card)
+  }
+
+  removePlayerFromGame(playerId) {
+    Object.values(this.games).forEach((game) => {
+      game.removePlayer(playerId)
+    })
+  }
+
+  getGame(gameId) {
+    return this.games[gameId]
+  }
+
+  getGames() {
+    return this.games
+  }
+
+  gameReady(gameId) {
+    return this.games[gameId].players.length >= 2 && !this.games[gameId].inProgress
+  }
+
+  startGame(gameId) {
+    this.games[gameId].startGame()
+  }
 }
 
-export const getGame = (gameId) => {
-  return games[gameId]
-}
-
-export const getGameIds = () => {
-  return Object.keys(games)
-}
-
-const gameManager = { joinGame, playCard, leaveGame, getGame, getGameIds }
-
+const gameManager = new GameManager()
 export default gameManager
