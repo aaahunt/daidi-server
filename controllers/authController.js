@@ -19,7 +19,7 @@ export const handleLogin = async (user, password, res) => {
     })
     user.updateOne({ access_token: token }).exec()
 
-    return res.status(200).send({ user_id: user._id, token, ttl })
+    return res.status(200).send({ token })
   })
 }
 
