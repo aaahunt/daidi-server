@@ -1,32 +1,37 @@
-import { rankMap, suitMap } from "../assets/utils.js"
+import { RANKS } from "./ranks.js"
+import { SUITS } from "./suits.js"
 
 export default class Card {
   constructor(suit, rank) {
     this.suit = suit
     this.rank = rank
+    Object.freeze(this)
+  }
+
+  get rankInfo() {
+    return RANKS[this.rank]
+  }
+  get suitInfo() {
+    return SUITS[this.suit]
   }
 
   get value() {
-    return this.rankValue + this.suitValue
+    return this.rankInfo.value + this.suitInfo.value
+  }
+  get rankValue() {
+    return this.rankInfo.value
+  }
+  get suitValue() {
+    return this.suitInfo.value
+  }
+  get rankOrder() {
+    return this.rankInfo.order
   }
 
   get display() {
-    return `${this.rank}${this.suit.charAt(0)}`
+    return `${this.rank}${this.suit[0]}`
   }
-
   get suitAscii() {
-    return suitMap[this.suit].symbol
-  }
-
-  get suitValue() {
-    return suitMap[this.suit].value
-  }
-
-  get rankValue() {
-    return rankMap[this.rank].value
-  }
-
-  get rankOrder() {
-    return rankMap[this.rank].order
+    return this.suitInfo.symbol
   }
 }

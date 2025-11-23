@@ -1,3 +1,4 @@
+// unused now - see gameSocketHandler.js instead
 import { Server } from "socket.io"
 import jwt from "jsonwebtoken"
 
@@ -31,7 +32,6 @@ export default function socket(server) {
 
   // Utility function to add new user to global list and emit to others
   function handleNewUser(socket) {
-    // Add newly connected user to users list
     users.push({
       socketID: socket.id,
       user_id: socket.user_id,
@@ -129,7 +129,7 @@ export default function socket(server) {
     if (!opponent) return
 
     // Create the hands to play, and determine who goes first (player with lowest ranked card)
-    const hands = newHands(13)
+    const hands = newHands(2, 13)
     const first = hands[0][0].value < hands[1][0].value ? 1 : 2
 
     // Emit game object to our opponent, with initial state

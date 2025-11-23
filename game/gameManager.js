@@ -42,9 +42,12 @@ class GameManager {
   }
 
   removePlayerFromGame(playerId) {
-    Object.values(this.games).forEach((game) => {
-      game.removePlayer(playerId)
-    })
+    for (const [roomName, game] of Object.entries(this.games)) {
+      const removed = game.removePlayer(playerId)
+      if (removed) return roomName
+    }
+
+    return null
   }
 
   getGame(gameId) {

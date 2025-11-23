@@ -32,8 +32,7 @@ io.on("connection", (socket) => {
   gameSocketHandler(socket, io)
 })
 
-const uri = process.env.ATLAS_URI
-mongoose.connect(uri)
+mongoose.connect(process.env.ATLAS_URI)
 mongoose.set("strictQuery", false)
 
 const connection = mongoose.connection

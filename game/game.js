@@ -15,11 +15,13 @@ export default class Game {
   }
 
   removePlayer(playerId) {
-    this.players = this.players.filter((id) => id !== playerId)
+    const playCount = this.players.length
+    this.players = this.players.filter((player) => player?.userId !== playerId)
+    return this.players.length != playCount
   }
 
   hasPlayer(player) {
-    return this.players.some((p) => p && p.socketId === player.socketId)
+    return this.players.some((p) => p && p.userId === player.userId)
   }
 
   isFull() {
@@ -62,5 +64,13 @@ export default class Game {
    */
   sort(Hand) {
     return Hand.sort((a, b) => (a.value < b.value ? -1 : 1))
+  }
+
+  determinePoints(cards) {
+    return cards === 13
+      ? cards * config.GAME.TOP_MULTIPLIER
+      : cards > 9
+      ? cards * config.GAME.MIDDLE_MULTIPLIER
+      : cards * config.GAME.BOTTOM_MULTIPLIER
   }
 }
