@@ -2,6 +2,7 @@ import Game from "./Game.js"
 
 class GameManager {
   constructor() {
+    /** @type {Record<string, Game>} */
     this.games = {
       diamond: new Game("diamond"),
       club: new Game("club"),
@@ -11,20 +12,17 @@ class GameManager {
   }
 
   seatPlayer(roomName, seatNumber, player) {
-    // check if player is already in a game
     for (const [gameName, game] of Object.entries(this.games)) {
       if (game.hasPlayer(player)) {
         return { success: false, message: `player is already seated at ${gameName}` }
       }
     }
 
-    // check if the room is full
     if (this.games[roomName].isFull()) {
       return { success: false, message: "Game is full" }
     }
 
-    // check if seat is already taken
-    if (this.games[roomName].players[seatNumber] !== null) {
+    if (this.games[roomName].seatTaken(seatNumber)) {
       return { success: false, message: "Seat is already taken" }
     }
 
@@ -59,11 +57,19 @@ class GameManager {
   }
 
   gameReady(gameId) {
-    return this.games[gameId].players.length >= 2 && !this.games[gameId].inProgress
+    return this.games[gameId].ready()
+  }
+
+  getPlayers(gameId) {
+    return this.games[gameId].players()
   }
 
   startGame(gameId) {
-    this.games[gameId].startGame()
+    this.games[gameId].initGame()
+  }
+
+  gamePlayerGameState(room, player) {
+    this.games[room].getPlayerGameState(player)
   }
 }
 

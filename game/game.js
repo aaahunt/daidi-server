@@ -1,52 +1,93 @@
 import Deck from "./Deck.js"
 
+const CAPACITY = 4
+
 export default class Game {
   constructor(id) {
     this.id = id
-    this.players = [null, null, null, null]
     this.inProgress = false
     this.activePlayer = null
+    this.seats = Object.fromEntries(Array.from({ length: CAPACITY }, (_, i) => [i + 1, null]))
     // Initialize additional game state here
   }
 
   addPlayer(player, seatNumber) {
-    this.players[seatNumber] = player
+    this.seats[seatNumber] = player
     console.log(`Player ${player.username} added to game ${this.id}`)
   }
 
   removePlayer(playerId) {
-    const playCount = this.players.length
-    this.players = this.players.filter((player) => player?.userId !== playerId)
-    return this.players.length != playCount
+    for (const n in this.seats) {
+      if (this.seats[n]?.userId === playerId) {
+        this.seats[n] = null
+        return true
+      }
+    }
+    return false
   }
 
   hasPlayer(player) {
-    return this.players.some((p) => p && p.userId === player.userId)
+    return Object.values(this.seats).some((p) => p && p.userId === player.userId)
   }
 
   isFull() {
-    return this.players.filter((p) => p !== null).length === 4
+    return this.numberOfPlayers() === CAPACITY
   }
 
-  startGame() {
+  numberOfPlayers() {
+    return Object.values(this.seats).filter((p) => p !== null).length
+  }
+
+  ready() {
+    return this.numberOfPlayers() >= 2 && !this.inProgress
+  }
+
+  seatTaken(seatNumber) {
+    this.seats[seatNumber] != null
+  }
+
+  players() {
+    return Object.entries(this.seats).filter(([seat, occupant]) => occupant !== null)
+  }
+
+  findPlayerSeat(player) {
+    const entry = Object.entries(this.seats).find(([seat, occupant]) => occupant && occupant.userId === player.userId)
+
+    return entry ? entry[0] : null
+  }
+
+  getPlayerHand(player) {
+    return Object.entries(this.seats).find(([seat, occupant]) => occupant && occupant.userId === player.userId)?.hand
+  }
+
+  getPlayerGameState(player) {
+    return {
+      inProgress: this.inProgress,
+      activePlayer: this.activePlayer,
+      hand: this.getPlayerHand(player),
+    }
+  }
+
+  initGame() {
     this.inProgress = true
 
     const deck = new Deck()
     const hands = []
     let lowestCard = null
-    let lowestPlayer = null
+    let lowestSeat = null
 
-    for (let i = 0; i < this.players.length; i++) {
+    for (let [seat, player] of this.players()) {
+      console.log("Game::startGame", player)
       const hand = deck.draw(13)
       this.sort(hand)
-      hands[i] = hand
       if (lowestCard === null || hand[0].value < lowestCard.value) {
         lowestCard = hand[0]
-        lowestPlayer = i
+        lowestSeat = seat
       }
+      player.hand = hand
     }
 
-    this.activePlayer = this.players[lowestPlayer]
+    this.activePlayer = this.seats[lowestSeat]
   }
 
   playCard(playerId, card) {

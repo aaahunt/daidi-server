@@ -1,3 +1,10 @@
+/**
+ * @typedef {import("../game/GameManager.js").default} GameManager
+ * @typedef {import("../game/Player.js").default} Player
+ * @typedef {import("socket.io").Server} Server
+ * @typedef {import("socket.io").Socket} Socket
+ */
+
 import gameManager from "../game/GameManager.js" // This is now a class instance
 import Player from "../game/Player.js"
 
@@ -18,13 +25,17 @@ export default (socket, io) => {
   socket.on("disconnect", handlers.disconnect)
 }
 
+/**
+ * @param {Server} io
+ * @param {Socket} socket
+ * @param {GameManager} gameManager
+ */
 function createGameHandlers(io, socket, gameManager) {
   function joinRoom(payload) {
     const player = new Player(socket.id, socket.user_id, socket.username)
     const room = payload.room
     const seat = payload.seat
 
-    console.log(JSON.stringify(payload))
     console.log(`${player.username} is attempting to join room ${room}, seat #${seat}`)
 
     const result = gameManager.seatPlayer(room, seat, player)
@@ -41,9 +52,10 @@ function createGameHandlers(io, socket, gameManager) {
       console.log(`Game ${room} is ready to start`)
 
       gameManager.startGame(room)
-      // send each player in the game their hand
-      gameManager.getGame(room).players.forEach((player) => {
-        io.to(player).emit("gameState", gameManager.getGame(room))
+
+      gameManager.getPlayers(room).forEach(([seat, player]) => {
+        console.log("sending game state to ", player)
+        io.to(player.socketId).emit("game/startGame", gameManager.gamePlayerGameState(room, player))
       })
     }
   }
@@ -56,9 +68,11 @@ function createGameHandlers(io, socket, gameManager) {
     console.log("on play", payload)
   }
 
-  function leaveRoom(payload) {
-    console.log(`User left game: ${socket.username} / ${socket.user_id}`, payload)
+  function leaveRoom() {
+    console.log(`User left game: ${socket.username} / ${socket.user_id}`)
     let room = gameManager.removePlayerFromGame(socket.user_id)
+
+    console.log(`removed from ${room}`)
 
     if (room != null) {
       io.to(room).emit("games", gameManager.getGames())
@@ -66,8 +80,7 @@ function createGameHandlers(io, socket, gameManager) {
   }
 
   function disconnect() {
-    console.log(`User disconnected: ${socket.username}, removing ${socket.user_id}`)
-    gameManager.removePlayerFromGame(socket.user_id)
+    console.log(`User disconnected: ${socket.username}`)
   }
 
   return { action, play, joinRoom, leaveRoom, disconnect }
