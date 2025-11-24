@@ -39,7 +39,6 @@ export default class Game {
   }
 
   ready() {
-    console.log("ready?", this.numberOfPlayers() >= 2 && !this.inProgress)
     return this.numberOfPlayers() >= 2 && !this.inProgress
   }
 
@@ -62,11 +61,10 @@ export default class Game {
   }
 
   getPlayerGameState(player) {
-    const hand = this.getPlayerHand(player)
     return {
       inProgress: this.inProgress,
       activePlayer: this.activeSeatNumber,
-      hand,
+      hand: this.getPlayerHand(player),
     }
   }
 

@@ -57,9 +57,8 @@ function createGameHandlers(io, socket, gameManager) {
       gameManager.startGame(room)
 
       gameManager.getPlayers(room).forEach(([seat, player]) => {
-        console.log("sending game state to ", player.username)
-        const playersGameState = gameManager.gamePlayerGameState(room, player)
-        io.to(player.socketId).emit("startGame", playersGameState)
+        console.log("sending game state to ", player)
+        io.to(player.socketId).emit("game/startGame", gameManager.gamePlayerGameState(room, player))
       })
     }
   }
@@ -68,12 +67,15 @@ function createGameHandlers(io, socket, gameManager) {
     console.log("on action", payload)
   }
 
+  function play(payload) {
+    console.log("on play", payload)
+  }
+
   function leaveRoom() {
     console.log(`User left game: ${socket.username} / ${socket.user_id}`)
     let room = gameManager.removePlayerFromGame(socket.user_id)
 
     console.log(`removed from ${room}`)
-    socket.emit(actions.GAMES, gameManager.getGames())
 
     if (room != null) {
       io.to(room).emit(actions.GAMES, gameManager.getGames())
@@ -81,11 +83,6 @@ function createGameHandlers(io, socket, gameManager) {
   }
 
   function disconnect() {
-    console.log(`User disconnected: ${socket.username}`)
-  }
-
-  function logout() {
-    leaveRoom()
     console.log(`User disconnected: ${socket.username}`)
   }
 

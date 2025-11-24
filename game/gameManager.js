@@ -69,7 +69,6 @@ class GameManager {
   }
 
   gamePlayerGameState(room, player) {
-    console.log("gamePlayerGameState", room, player.username)
     return this.games[room].getPlayerGameState(player)
   }
 }
