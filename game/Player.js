@@ -5,6 +5,5 @@ export default class Player {
     this.username = username
     this.game = null
     this.table = null
-    this.hand = []
   }
 }
