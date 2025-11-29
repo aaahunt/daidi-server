@@ -8,6 +8,7 @@ export default class Game {
     this.inProgress = false
     this.activeSeatNumber = null
     this.seats = Object.fromEntries(Array.from({ length: CAPACITY }, (_, i) => [i + 1, null]))
+    this.board = null
     // Initialize additional game state here
   }
 
@@ -65,6 +66,7 @@ export default class Game {
       inProgress: this.inProgress,
       activePlayer: this.activeSeatNumber,
       hand: this.getPlayerHand(player),
+      board: this.board,
     }
   }
 

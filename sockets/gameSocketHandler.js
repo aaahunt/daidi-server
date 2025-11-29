@@ -46,7 +46,7 @@ function createGameHandlers(io, socket, gameManager) {
 
     if (!result.success) {
       console.log(`User ${player.username} failed to join room ${room} seat ${seat}: ${result.message}`)
-      socket.emit(actions.JOIN_FAILED, result.message)
+      socket.emit(actions.MESSAGE, result.message)
       return
     }
 
@@ -92,6 +92,8 @@ function createGameHandlers(io, socket, gameManager) {
 
     if (room != null) {
       io.to(room).emit(actions.GAMES, gameManager.getGames())
+    } else {
+      socket.emit(actions.MESSAGE, "You are not sat at that game")
     }
   }
 
