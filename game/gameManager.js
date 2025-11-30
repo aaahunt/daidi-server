@@ -13,22 +13,26 @@ class GameManager {
 
   seatPlayer(roomName, seatNumber, player) {
     for (const [gameName, game] of Object.entries(this.games)) {
-      if (game.hasPlayer(player)) {
-        return { success: false, message: `Player is already seated at ${gameName}` }
+      if (game.hasPlayer(player.userId)) {
+        throw new Error(`Player is already seated at ${gameName}`)
       }
     }
 
-    if (this.games[roomName].isFull()) {
-      return { success: false, message: "Game is full" }
+    const game = this.games[roomName]
+    if (!game) {
+      throw new Error(`Game ${roomName} does not exist`)
     }
 
-    if (this.games[roomName].seatTaken(seatNumber)) {
-      return { success: false, message: "Seat is already taken" }
+    if (game.isFull()) {
+      throw new Error(`Game ${roomName} is full`)
+    }
+
+    if (game.seatTaken(seatNumber)) {
+      throw new Error(`Seat ${seatNumber} is already taken`)
     }
 
     console.log(`adding player to game ${roomName}`)
-    this.games[roomName].addPlayer(player, seatNumber)
-    return { success: true, message: "Player added to game" }
+    game.addPlayer(player, seatNumber)
   }
 
   playCard(gameId, playerId, card) {
@@ -48,6 +52,15 @@ class GameManager {
     return null
   }
 
+  findPlayerRoom(userId) {
+    for (const [roomId, game] of Object.entries(this.games)) {
+      if (game.hasPlayer(userId)) {
+        return roomId
+      }
+    }
+    return null
+  }
+
   getGame(gameId) {
     return this.games[gameId]
   }
@@ -57,6 +70,7 @@ class GameManager {
   }
 
   gameReady(gameId) {
+    console.log(`is ${gameId} ready?`)
     return this.games[gameId].ready()
   }
 
@@ -68,8 +82,8 @@ class GameManager {
     this.games[gameId].initGame()
   }
 
-  gamePlayerGameState(room, player) {
-    return this.games[room].getPlayerGameState(player)
+  gamePlayerGameState(room, userId) {
+    return this.games[room].getPlayerGameState(userId)
   }
 }
 

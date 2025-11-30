@@ -12,9 +12,9 @@ const router = express.Router()
 
 router.get("/", async (req, res) => {
   try {
-    let user = await User.findOne({ _id: req.user_id }).exec()
+    let user = await User.findOne({ _id: req.userId }).exec()
     if (!user) return res.status(200).send("The username does not exist")
-    res.send({ username: user.username, user_id: user._id })
+    res.send({ username: user.username, userId: user._id })
   } catch (error) {
     res.status(500).send(error)
   }
@@ -23,7 +23,7 @@ router.get("/", async (req, res) => {
 router.post("/logout", async (req, res) => {
   try {
     let result = await User.updateOne(
-      { _id: req.user_id },
+      { _id: req.userId },
       {
         $set: {
           access_token: "",
@@ -39,7 +39,7 @@ router.post("/logout", async (req, res) => {
 router.post("/win", async (req, res) => {
   try {
     console.log(req.body)
-    let winner = await User.findOne({ _id: req.user_id }).exec()
+    let winner = await User.findOne({ _id: req.userId }).exec()
     let opponent = await User.findOne({ _id: req.body.opponent }).exec()
 
     if (!winner || !opponent) return res.status(400).send({ message: "Invalid user ID" })
@@ -64,7 +64,7 @@ router.post("/win", async (req, res) => {
       // Get opposing record
       let oppRecord
       Object.entries(opponent.games).forEach(([key, value]) => {
-        if (value.opponent_id === req.body.user_id) oppRecord = value._id
+        if (value.opponent_id === req.body.userId) oppRecord = value._id
       })
 
       User.updateOne(
@@ -88,7 +88,7 @@ router.post("/win", async (req, res) => {
 
       // Add the game record to our record
       User.findOneAndUpdate(
-        { _id: req.body.user_id },
+        { _id: req.body.userId },
         {
           $push: {
             games: ourRecord,
@@ -125,7 +125,7 @@ router.post("/win", async (req, res) => {
 // Route list of games that user has played
 router.get("/games", async (req, res) => {
   try {
-    let result = await User.findOne({ _id: req.user_id }).exec()
+    let result = await User.findOne({ _id: req.userId }).exec()
     if (result.games.length < 1) return res.status(204).send({ message: "No games found" })
     res.send(result.games)
   } catch (error) {

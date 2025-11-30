@@ -34,7 +34,7 @@ export default function socket(server) {
   function handleNewUser(socket) {
     users.push({
       socketID: socket.id,
-      user_id: socket.user_id,
+      userId: socket.userId,
       username: socket.username,
     })
 
@@ -43,7 +43,7 @@ export default function socket(server) {
 
     // tell everyone else we are here
     socket.broadcast.emit("user connected", {
-      user_id: socket.user_id,
+      userId: socket.userId,
       username: socket.username,
     })
   }
@@ -56,7 +56,7 @@ export default function socket(server) {
       playerNumber: player,
       activePlayer: first,
       opponent: {
-        user_id: opponent.user_id,
+        userId: opponent.userId,
         name: opponent.username,
         passed: false,
         score: 0,
@@ -166,7 +166,7 @@ export default function socket(server) {
       return
     }
 
-    socket.to(opponent.socketID).emit("challenge", socket.user_id, socket.username)
+    socket.to(opponent.socketID).emit("challenge", socket.userId, socket.username)
     callback({
       header: "Success",
       body: "Challenge sent",
@@ -174,7 +174,7 @@ export default function socket(server) {
   }
 
   function findUserById(id) {
-    return users.find((user) => user.user_id === id)
+    return users.find((user) => user.userId === id)
   }
 
   function findUserBySocket(socketID) {

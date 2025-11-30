@@ -10,13 +10,15 @@ import Player from "../game/Player.js"
 import actions from "./actions.js"
 
 export default (socket, io) => {
-  const timeNow = new Date()
-  console.log(`User connected: ${socket.username} at ${timeNow.toLocaleTimeString()}`)
+  console.log(`User connected: ${socket.username} at ${new Date().toLocaleTimeString()}`)
 
   // Send the current games state to the newly connected client
   socket.emit(actions.GAMES, gameManager.getGames())
 
   const handlers = createGameHandlers(io, socket, gameManager)
+
+  // If user is already in a room, add him to the socket group and send him the game state again
+  handlers.getGameState()
 
   // Event Listeners
   socket.on(actions.JOIN, handlers.joinRoom)
@@ -32,26 +34,24 @@ export default (socket, io) => {
  * @param {GameManager} gameManager
  */
 function createGameHandlers(io, socket, gameManager) {
-  // -------------------------------------------------------
-  // JOIN ROOM
-  // -------------------------------------------------------
+  const player = new Player(socket.id, socket.userId, socket.username)
+
   function joinRoom(payload) {
-    const player = new Player(socket.id, socket.user_id, socket.username)
     const room = payload.room
     const seat = payload.seat
 
     console.log(`${player.username} is attempting to join room ${room}, seat #${seat}`)
 
-    const result = gameManager.seatPlayer(room, seat, player)
-
-    if (!result.success) {
-      console.log(`User ${player.username} failed to join room ${room} seat ${seat}: ${result.message}`)
-      socket.emit(actions.MESSAGE, result.message)
+    try {
+      gameManager.seatPlayer(room, seat, player)
+    } catch (e) {
+      console.log(`User ${player.username} failed to join room ${room} seat ${seat}: ${e.message}`)
+      socket.emit(actions.MESSAGE, e.message)
       return
     }
 
     socket.join(room)
-    io.to(room).emit(actions.GAMES, gameManager.getGames())
+    // io.to(room).emit(actions.GAMES, gameManager.getGames())
 
     if (gameManager.gameReady(room)) {
       console.log(`Game ${room} is ready to start`)
@@ -63,9 +63,28 @@ function createGameHandlers(io, socket, gameManager) {
 
         const playersGameState = gameManager.gamePlayerGameState(room, player)
 
-        io.to(player.socketId).emit("startGame", playersGameState)
+        io.to(player.socketId).emit(actions.GAME_STATE, playersGameState)
       })
     }
+  }
+
+  function getGameState() {
+    const userId = socket.userId
+
+    console.log(`Is user ${userId} already in a room?`)
+    const room = gameManager.findPlayerRoom(userId)
+    console.log("room", room)
+    if (!room) {
+      return
+    }
+
+    console.log(`${socket.username} is already in room ${room}, restoring game state`)
+
+    // ensure they join the socket.io room
+    socket.join(room)
+
+    const playersGameState = gameManager.gamePlayerGameState(room, userId)
+    socket.emit(actions.GAME_STATE, playersGameState)
   }
 
   // -------------------------------------------------------
@@ -83,9 +102,9 @@ function createGameHandlers(io, socket, gameManager) {
   // LEAVE ROOM
   // -------------------------------------------------------
   function leaveRoom() {
-    console.log(`User left game: ${socket.username} / ${socket.user_id}`)
+    console.log(`User left game: ${socket.username} / ${socket.userId}`)
 
-    const room = gameManager.removePlayerFromGame(socket.user_id)
+    const room = gameManager.removePlayerFromGame(socket.userId)
     console.log(`removed from ${room}`)
 
     socket.emit(actions.GAMES, gameManager.getGames())
@@ -102,7 +121,6 @@ function createGameHandlers(io, socket, gameManager) {
   // -------------------------------------------------------
   function disconnect() {
     console.log(`User disconnected: ${socket.username}`)
-    leaveRoom()
   }
 
   // -------------------------------------------------------
@@ -113,5 +131,5 @@ function createGameHandlers(io, socket, gameManager) {
     console.log(`User logged out: ${socket.username}`)
   }
 
-  return { action, joinRoom, leaveRoom, disconnect, logout, play }
+  return { action, joinRoom, leaveRoom, disconnect, logout, play, getGameState }
 }

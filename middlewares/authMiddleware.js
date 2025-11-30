@@ -12,7 +12,7 @@ export default function authMiddleware(socket, next) {
       return next(new Error("invalid token"))
     }
 
-    socket.user_id = decoded.user_id
+    socket.userId = decoded.userId
     socket.username = decoded.username
     next()
   })

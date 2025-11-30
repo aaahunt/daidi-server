@@ -21,14 +21,15 @@ export default class Game {
     for (const n in this.seats) {
       if (this.seats[n]?.userId === playerId) {
         this.seats[n] = null
+        if (this.numberOfPlayers() == 0) this.inProgress = false
         return true
       }
     }
     return false
   }
 
-  hasPlayer(player) {
-    return Object.values(this.seats).some((p) => p && p.userId === player.userId)
+  hasPlayer(playerId) {
+    return Object.values(this.seats).some((p) => p && p.userId === playerId)
   }
 
   isFull() {
@@ -40,6 +41,7 @@ export default class Game {
   }
 
   ready() {
+    console.log(`game ready?`, this.numberOfPlayers(), this.inProgress)
     return this.numberOfPlayers() >= 2 && !this.inProgress
   }
 
@@ -57,15 +59,15 @@ export default class Game {
     return entry ? entry[0] : null
   }
 
-  getPlayerHand(player) {
-    return Object.values(this.seats).find((occupant) => occupant && occupant.userId === player.userId).hand
+  getPlayerHand(userId) {
+    return Object.values(this.seats).find((occupant) => occupant && occupant.userId === userId)?.hand
   }
 
-  getPlayerGameState(player) {
+  getPlayerGameState(userId) {
     return {
       inProgress: this.inProgress,
       activePlayer: this.activeSeatNumber,
-      hand: this.getPlayerHand(player),
+      hand: this.getPlayerHand(userId),
       board: this.board,
     }
   }

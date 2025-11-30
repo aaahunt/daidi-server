@@ -14,7 +14,7 @@ export const handleLogin = async (user, password, res) => {
     const now = Math.floor(Date.now() / 1000) // current time in seconds
     const ttl = now + expiresInSeconds // expiry time in seconds
 
-    const token = jwt.sign({ user_id: user._id, username: user.username }, process.env.ACCESS_TOKEN_SECRET, {
+    const token = jwt.sign({ userId: user._id, username: user.username }, process.env.ACCESS_TOKEN_SECRET, {
       expiresIn: "1d",
     })
     user.updateOne({ access_token: token }).exec()
@@ -33,7 +33,7 @@ export const verifyJWT = (req, res, next) => {
   try {
     jwt.verify(token, process.env.ACCESS_TOKEN_SECRET, (err, decoded) => {
       if (err) return res.status(403).json({ message: "Invalid token, access denied" })
-      req.user_id = decoded.user_id
+      req.userId = decoded.userId
       req.username = decoded.username
       next()
     })

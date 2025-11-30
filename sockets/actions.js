@@ -4,5 +4,6 @@ export default {
   LOGOUT: "app/logout",
   LEAVE: "app/leaveRoom",
   GAME_ACTION: "game/action",
+  GAME_STATE: "game/gameState",
   MESSAGE: "app/message",
 }

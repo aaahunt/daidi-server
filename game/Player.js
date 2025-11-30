@@ -3,7 +3,5 @@ export default class Player {
     this.socketId = socketId
     this.userId = userId
     this.username = username
-    this.game = null
-    this.table = null
   }
 }

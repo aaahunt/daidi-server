@@ -18,12 +18,15 @@ export default class Card {
   get value() {
     return this.rankInfo.value + this.suitInfo.value
   }
+
   get rankValue() {
     return this.rankInfo.value
   }
+
   get suitValue() {
     return this.suitInfo.value
   }
+
   get rankOrder() {
     return this.rankInfo.order
   }
@@ -31,7 +34,17 @@ export default class Card {
   get display() {
     return `${this.rank}${this.suit[0]}`
   }
+
   get suitAscii() {
     return this.suitInfo.symbol
+  }
+
+  toJSON() {
+    return {
+      suit: this.suit,
+      rank: this.rank,
+      value: this.value,
+      display: this.display,
+    }
   }
 }
