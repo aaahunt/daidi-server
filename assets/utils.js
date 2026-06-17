@@ -17,5 +17,14 @@ export const newHands = (players, cards) => {
 }
 
 export const sortByValue = (array) => {
-  return array.sort((a, b) => (a.value < b.value ? -1 : 1))
+  return array.sort((a, b) => a.value - b.value)
+}
+
+export const sortByRankValue = (array) => {
+  return array.sort((a, b) => {
+    if (a.rankValue !== b.rankValue) {
+      return a.rankValue - b.rankValue
+    }
+    return a.value - b.value
+  })
 }

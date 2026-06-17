@@ -45,6 +45,10 @@ export default class Card {
       rank: this.rank,
       value: this.value,
       display: this.display,
+      rankInfo: this.rankInfo,
+      suitInfo: this.suitInfo,
+      rankValue: this.rankValue,
+      suitValue: this.suitValue,
     }
   }
 }

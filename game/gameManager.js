@@ -4,86 +4,119 @@ class GameManager {
   constructor() {
     /** @type {Record<string, Game>} */
     this.games = {
-      diamond: new Game("diamond"),
-      club: new Game("club"),
-      heart: new Game("heart"),
-      spade: new Game("spade"),
+      diamond: new Game(),
+      club: new Game(),
+      heart: new Game(),
+      spade: new Game(),
     }
   }
 
-  seatPlayer(roomName, seatNumber, player) {
-    for (const [gameName, game] of Object.entries(this.games)) {
-      if (game.hasPlayer(player.userId)) {
-        throw new Error(`Player is already seated at ${gameName}`)
-      }
+  seatPlayer(room, seat, player) {
+    if (this.games[room].playerIsSat(player)) {
+      throw new Error(`Player is already seated at ${room}`)
     }
 
-    const game = this.games[roomName]
-    if (!game) {
-      throw new Error(`Game ${roomName} does not exist`)
-    }
+    const game = this.games[room]
 
     if (game.isFull()) {
-      throw new Error(`Game ${roomName} is full`)
+      throw new Error(`Game ${room} is full`)
     }
 
-    if (game.seatTaken(seatNumber)) {
-      throw new Error(`Seat ${seatNumber} is already taken`)
+    if (game.seatTaken(seat)) {
+      throw new Error(`Seat ${seat} is already taken`)
     }
 
-    console.log(`adding player to game ${roomName}`)
-    game.addPlayer(player, seatNumber)
+    game.seatPlayer(player, seat)
   }
 
-  playCard(gameId, playerId, card) {
-    if (!this.games[gameId]) {
-      return { success: false, message: "Game not found" }
-    }
-
-    return this.games[gameId].playCard(playerId, card)
+  addPlayer(room, player) {
+    this.games[room].addPlayer(player)
   }
 
-  removePlayerFromGame(playerId) {
-    for (const [roomName, game] of Object.entries(this.games)) {
-      const removed = game.removePlayer(playerId)
-      if (removed) return roomName
+  playCards(room, player, cards) {
+    if (this.games[room].playerActive(player)) {
+      this.games[room].playCard(player, cards)
     }
-
-    return null
   }
 
-  findPlayerRoom(userId) {
+  passTurn(room, player) {
+    if (!this.games[room]) {
+      throw new Error("Player is not in that game")
+    }
+
+    return this.games[room].passTurn(player)
+  }
+
+  removePlayerFromGame(room, player) {
+    this.games[room].removePlayer(player)
+  }
+
+  findPlayerRoom(player) {
     for (const [roomId, game] of Object.entries(this.games)) {
-      if (game.hasPlayer(userId)) {
+      if (game.playerIsSat(player)) {
         return roomId
       }
     }
     return null
   }
 
-  getGame(gameId) {
-    return this.games[gameId]
+  getGame(room) {
+    return this.games[room]
   }
 
   getGames() {
-    return this.games
+    return Object.fromEntries(
+      Object.entries(this.games).map(([key, game]) => [
+        key,
+        {
+          inProgress: game.inProgress,
+          players: game.getNumberOfPlayersSat().length,
+        },
+      ]),
+    )
+  }
+  gameReady(room) {
+    return this.games[room].isReady()
   }
 
-  gameReady(gameId) {
-    console.log(`is ${gameId} ready?`)
-    return this.games[gameId].ready()
+  gameInProgress(room) {
+    return this.games[room].isInProgress()
   }
 
-  getPlayers(gameId) {
-    return this.games[gameId].occupiedSeats()
+  playerReady(room, player, status) {
+    this.games[room].setPlayerReady(player, status)
   }
 
-  startGame(gameId) {
-    this.games[gameId].initGame()
+  getPlayersInHand(room) {
+    return this.games[room].getPlayersInHand()
   }
 
-  gamePlayerGameState(room, userId) {
-    return this.games[room].getPlayerGameState(userId)
+  getReadyPlayers(room) {
+    return this.games[room].getReadyPlayers()
+  }
+
+  startGame(room) {
+    this.games[room].startGame()
+  }
+
+  gamePlayerGameState(room, player) {
+    return this.games[room].getPlayerGameState(player)
+  }
+
+  sharedGameState(room) {
+    return this.games[room].getSharedGameState()
+  }
+
+  gameOver(room) {
+    return this.games[room].gameOver()
+  }
+
+  playerWins(room, player) {
+    return this.games[room].playerWins(player)
+  }
+
+  resetGame(room) {
+    return this.games[room].resetGame()
   }
 }
 
