@@ -107,6 +107,14 @@ describe("handRanking", () => {
     expect(determineHandClass(straightFlushWheel)).toBe(pokerRank.STRAIGHT_FLUSH)
     expect(determineHandClass(wheel)).toBe(pokerRank.STRAIGHT)
   })
+
+  test("recognizes straights from serialized card payloads", () => {
+    const serializedStraight = straight.map((card) => card.toJSON())
+    const serializedWheel = wheel.map((card) => card.toJSON())
+
+    expect(determineHandClass(serializedStraight)).toBe(pokerRank.STRAIGHT)
+    expect(determineHandClass(serializedWheel)).toBe(pokerRank.STRAIGHT)
+  })
 })
 
 describe("CompareHands", () => {

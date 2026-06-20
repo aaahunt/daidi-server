@@ -39,6 +39,10 @@ export default class Card {
     return this.suitInfo.symbol
   }
 
+  toString() {
+    return `${this.rank}${this.suit[0]}`
+  }
+
   toJSON() {
     return {
       suit: this.suit,

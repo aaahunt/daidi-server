@@ -1,5 +1,6 @@
 import { sortByRankValue } from "../assets/utils.js"
 import Card from "./Card.js"
+import { RANKS } from "./ranks.js"
 
 export const pokerRank = {
   HIGH_CARD: 0,
@@ -30,10 +31,12 @@ export const determineHandClass = (hand) => {
   let suits = {}
 
   for (const card of hand) {
-    bitmask |= 1 << card.rankOrder
+    const { rankOrder, rankValue } = getRankMeta(card)
+
+    bitmask |= 1 << rankOrder
 
     suits[card.suit] = (suits[card.suit] ?? 0) + 1
-    values[card.rankValue] = (values[card.rankValue] ?? 0) + 1
+    values[rankValue] = (values[rankValue] ?? 0) + 1
   }
 
   const valueCounts = Object.values(values).sort((a, b) => b - a)
@@ -90,6 +93,23 @@ const checkStraight = (bitmask) => {
   return (bitmask & WHEEL_MASK) === WHEEL_MASK
 }
 
+const getRankMeta = (card) => {
+  if (typeof card.rankOrder === "number" && typeof card.rankValue === "number") {
+    return { rankOrder: card.rankOrder, rankValue: card.rankValue }
+  }
+
+  const rankInfo = card?.rankInfo ?? RANKS[card?.rank]
+
+  if (!rankInfo) {
+    throw new Error(`Unknown card rank: ${card?.rank}`)
+  }
+
+  return {
+    rankOrder: rankInfo.order,
+    rankValue: rankInfo.value,
+  }
+}
+
 /**
  * Determine the winner between two hands
  *
@@ -100,8 +120,6 @@ const checkStraight = (bitmask) => {
 export const compareHands = (hand1, hand2) => {
   const rank1 = determineHandClass(hand1)
   const rank2 = determineHandClass(hand2)
-
-  console.log("compareHands", rank1, rank2)
 
   if (rank1 > rank2) {
     return 1
@@ -168,7 +186,12 @@ const tieBreak = (hand1, hand2, handClass) => {
         if (h1[i].rankValue < h2[i].rankValue) return -1
       }
 
-      return h1[0].value - h2[0].value
+      for (let i = Math.max(h1.length, h2.length) - 1; i >= 0; i--) {
+        if (h1[i].suitValue > h2[i].suitValue) return 1
+        if (h1[i].suitValue < h2[i].suitValue) return -1
+      }
+
+      throw new Error("Tie break failed, hands are identical")
   }
 }
 

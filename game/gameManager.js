@@ -12,11 +12,11 @@ class GameManager {
   }
 
   seatPlayer(room, seat, player) {
-    if (this.games[room].playerIsSat(player)) {
+    const game = this.games[room]
+
+    if (game.playerIsSat(player)) {
       throw new Error(`Player is already seated at ${room}`)
     }
-
-    const game = this.games[room]
 
     if (game.isFull()) {
       throw new Error(`Game ${room} is full`)
@@ -36,6 +36,8 @@ class GameManager {
   playCards(room, player, cards) {
     if (this.games[room].playerActive(player)) {
       this.games[room].playCard(player, cards)
+    } else {
+      throw new Error("Player is not active")
     }
   }
 

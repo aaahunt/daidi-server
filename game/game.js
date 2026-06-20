@@ -4,14 +4,39 @@ import { handBeatsBoard, handIsValidDaiDi } from "./handRanking.js"
 
 export default class Game {
   constructor() {
-    this.inProgress = false
     this.players = new Map()
+    this.inProgress = false
     this.board = []
     this.history = []
   }
 
-  addPlayer(player) {
+  selectPlayers(func) {
+    return [...this.players.values()].filter(func)
+  }
+
+  getPlayer(player) {
+    return this.players.get(player.id)
+  }
+
+  setPlayer(player) {
     this.players.set(player.id, player)
+  }
+
+  updatePlayer(player, updates) {
+    const p = this.getPlayer(player)
+    if (p) {
+      Object.assign(p, updates)
+    }
+  }
+
+  hasPlayer(player) {
+    return this.players.has(player.id)
+  }
+
+  addPlayer(player) {
+    if (!this.hasPlayer(player)) {
+      this.setPlayer(player)
+    }
   }
 
   removePlayer(player) {
@@ -19,28 +44,19 @@ export default class Game {
   }
 
   seatPlayer(player, seat) {
-    player.seat = seat
-    this.players.set(player.id, player)
+    this.updatePlayer(player, { seat })
   }
 
   unseatPlayer(player, seat) {
-    const p = this.players.get(player.id)
-    if (p) {
-      p.seat = null
-    }
-  }
-
-  filterPlayers(func) {
-    return [...this.players.values()].filter(func)
+    this.updatePlayer(player, { seat: null })
   }
 
   playerIsSat(player) {
-    const p = this.players.get(player.id)
-    return p?.seat != null
+    return this.getPlayer(player)?.seat != null
   }
 
   getOccupiedSeats() {
-    return this.filterPlayers((player) => player.seat)
+    return this.selectPlayers((player) => player.seat != null)
   }
 
   getNumberOfPlayersSat() {
@@ -48,7 +64,7 @@ export default class Game {
   }
 
   getReadyPlayers() {
-    return this.filterPlayers((player) => player.ready)
+    return this.selectPlayers((player) => player.ready)
   }
 
   getNumberOfActivePlayers() {
@@ -56,7 +72,7 @@ export default class Game {
   }
 
   getPlayersInHand() {
-    return this.filterPlayers((player) => player.inHand)
+    return this.selectPlayers((player) => player.inHand)
   }
 
   isFull() {
@@ -72,14 +88,11 @@ export default class Game {
   }
 
   setPlayerReady(player, status) {
-    const p = this.players.get(player.id)
-    if (p) {
-      p.ready = status
-    }
+    this.updatePlayer(player, { ready: status })
   }
 
   getPlayerBySeat(seat) {
-    return this.filterPlayers((player) => player.seat === seat)
+    return this.selectPlayers((player) => player.seat === seat)
   }
 
   seatTaken(seat) {
@@ -87,15 +100,15 @@ export default class Game {
   }
 
   getPlayerHand(player) {
-    return this.players.get(player.id)?.hand
+    return this.getPlayer(player)?.hand
   }
 
   playerActive(player) {
-    return this.players.get(player.id)?.active
+    return this.getPlayer(player)?.active
   }
 
   getPublicSeats() {
-    const entries = this.filterPlayers((player) => player?.seat != null).map((player) => {
+    const entries = this.selectPlayers((player) => player?.seat != null).map((player) => {
       const { socketId, hand, ...publicPlayer } = player
       return [player.seat, publicPlayer]
     })
@@ -104,11 +117,11 @@ export default class Game {
   }
 
   getObservers() {
-    return [...this.players.entries()].filter((player) => player?.seat == null).length
+    return this.selectPlayers((player) => player?.seat == null).length
   }
 
   removeCards(player, cards) {
-    const p = this.players.get(player.id)
+    const p = this.getPlayer(player)
     if (!p.inHand || !p.hand?.length > 0) {
       throw new Error("Player is not in a hand")
     }
@@ -128,11 +141,9 @@ export default class Game {
   }
 
   getPlayerGameState(player) {
-    const p = this.players.get(player.id)
-
     return {
       ...this.getSharedGameState(),
-      hand: p?.hand,
+      hand: this.getPlayerHand(player),
     }
   }
 
@@ -140,22 +151,28 @@ export default class Game {
     this.inProgress = true
 
     const deck = new Deck()
-    const hands = []
     let lowest = Number.MAX_VALUE
     let starting = null
 
-    for (const player of Object.entries(this.getReadyPlayers())) {
+    for (const player of this.getReadyPlayers()) {
       const hand = deck.draw(13)
       sortByValue(hand)
+
       if (hand[0].value < lowest) {
         lowest = hand[0].value
-        starting = parseInt(seat)
+        starting = parseInt(player.seat, 10)
       }
+
       player.hand = hand
       player.inHand = true
+      player.active = false
+      player.passed = false
     }
 
-    const startingPlayer = getPlayerBySeat(starting)
+    const startingPlayer = this.getPlayerBySeat(starting)[0]
+    if (!startingPlayer) {
+      throw new Error("Could not determine starting player")
+    }
     startingPlayer.active = true
   }
 
@@ -174,11 +191,7 @@ export default class Game {
   }
 
   passTurn(player) {
-    const p = this.players.get(player.id)
-    if (p) {
-      p.passed = true
-    }
-
+    this.updatePlayer(player, { passed: true })
     this.nextPlayer()
 
     if (this.allPlayersPassed()) {
@@ -195,8 +208,13 @@ export default class Game {
 
   nextPlayer() {
     const players = this.getPlayersInHand()
-    const currentIndex = players.find((seat) => seat?.active)
-    // @TODO: add logic
+    const activePlayer = players.find((seat) => seat?.active)
+    // If the active player is the last in the array, we want to loop back to the first player, otherwise we just want to get the next player in the array
+    const nextPlayerIndex = (players.indexOf(activePlayer) + 1) % players.length
+    const nextPlayer = players[nextPlayerIndex]
+
+    players.forEach((player) => (player.active = false))
+    this.updatePlayer(nextPlayer, { active: true })
   }
 
   allPlayersPassed() {
