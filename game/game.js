@@ -92,11 +92,11 @@ export default class Game {
   }
 
   getPlayerBySeat(seat) {
-    return this.selectPlayers((player) => player.seat === seat)
+    return this.selectPlayers((player) => player.seat === seat)[0]
   }
 
   seatTaken(seat) {
-    return this.getPlayerBySeat(seat).length === 1
+    return !!this.getPlayerBySeat(seat)
   }
 
   getPlayerHand(player) {
@@ -169,10 +169,7 @@ export default class Game {
       player.passed = false
     }
 
-    const startingPlayer = this.getPlayerBySeat(starting)[0]
-    if (!startingPlayer) {
-      throw new Error("Could not determine starting player")
-    }
+    const startingPlayer = this.getPlayerBySeat(starting)
     startingPlayer.active = true
   }
 
@@ -236,10 +233,13 @@ export default class Game {
   resetGame() {
     this.board = []
     this.history = []
+    this.inProgress = false
 
-    for (let [seat, occupant] of Object.entries(this.getReadyPlayers())) {
-      occupant.hand = []
-      occupant.inHand = false
+    for (const player of this.getReadyPlayers()) {
+      player.hand = []
+      player.inHand = false
+      player.active = false
+      player.passed = false
     }
   }
 
