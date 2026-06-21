@@ -28,3 +28,11 @@ export const sortByRankValue = (array) => {
     return a.value - b.value
   })
 }
+
+export const Status = Object.freeze({
+  READY: "ready",
+  TAKING_TURN: "taking_turn",
+  WAITING_FOR_TURN: "waiting_for_turn",
+  PASSED: "passed",
+  SAT_OUT: "sat_out",
+})

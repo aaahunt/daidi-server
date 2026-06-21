@@ -1,4 +1,4 @@
-import { sortByValue } from "../assets/utils.js"
+import { sortByValue, Status } from "../assets/utils.js"
 import Deck from "./Deck.js"
 import { handBeatsBoard, handIsValidDaiDi } from "./handRanking.js"
 
@@ -55,24 +55,31 @@ export default class Game {
     return this.getPlayer(player)?.seat != null
   }
 
-  getOccupiedSeats() {
+  getPlayersSat() {
     return this.selectPlayers((player) => player.seat != null)
   }
 
   getNumberOfPlayersSat() {
-    return this.getOccupiedSeats().length
+    return this.getPlayersSat().length
   }
 
   getReadyPlayers() {
-    return this.selectPlayers((player) => player.ready)
+    return this.selectPlayers((player) => player.status === Status.READY)
   }
 
   getNumberOfActivePlayers() {
     return this.getReadyPlayers().length
   }
 
+  playerIsInHand(player) {
+    const p = this.getPlayer(player)
+    return p?.status === Status.TAKING_TURN || p?.status === Status.WAITING_FOR_TURN || p?.status === Status.PASSED
+  }
+
   getPlayersInHand() {
-    return this.selectPlayers((player) => player.inHand)
+    return this.selectPlayers(
+      (p) => p.status === Status.TAKING_TURN || p.status === Status.WAITING_FOR_TURN || p.status === Status.PASSED,
+    )
   }
 
   isFull() {
@@ -87,8 +94,8 @@ export default class Game {
     return this.inProgress
   }
 
-  setPlayerReady(player, status) {
-    this.updatePlayer(player, { ready: status })
+  setPlayerReady(player, ready) {
+    this.updatePlayer(player, { status: ready ? Status.READY : Status.SAT_OUT })
   }
 
   getPlayerBySeat(seat) {
@@ -103,8 +110,8 @@ export default class Game {
     return this.getPlayer(player)?.hand
   }
 
-  playerActive(player) {
-    return this.getPlayer(player)?.active
+  isPlayersTurn(player) {
+    return this.getPlayer(player)?.status === Status.TAKING_TURN
   }
 
   getPublicSeats() {
@@ -122,7 +129,7 @@ export default class Game {
 
   removeCards(player, cards) {
     const p = this.getPlayer(player)
-    if (!p.inHand || !p.hand?.length > 0) {
+    if (!this.playerIsInHand(player) || this.getPlayerHand(player).length === 0) {
       throw new Error("Player is not in a hand")
     }
 
@@ -164,13 +171,11 @@ export default class Game {
       }
 
       player.hand = hand
-      player.inHand = true
-      player.active = false
-      player.passed = false
+      player.status = Status.WAITING_FOR_TURN
     }
 
     const startingPlayer = this.getPlayerBySeat(starting)
-    startingPlayer.active = true
+    startingPlayer.status = Status.TAKING_TURN
   }
 
   playCard(player, cards) {
@@ -184,15 +189,18 @@ export default class Game {
 
     this.updateBoard(cards)
     this.removeCards(player, cards)
-    this.nextPlayer()
+    this.updatePlayer(player, { status: Status.WAITING_FOR_TURN })
+    this.nextPlayer(player)
   }
 
   passTurn(player) {
-    this.updatePlayer(player, { passed: true })
-    this.nextPlayer()
+    console.log(`Player ${player.username} is passing their turn`)
+    this.updatePlayer(player, { status: Status.PASSED })
+    const nextPlayer = this.nextPlayer(player)
 
     if (this.allPlayersPassed()) {
-      this.getPlayersInHand().forEach((p) => (p.passed = false))
+      this.getPlayersInHand().forEach((p) => (p.status = Status.WAITING_FOR_TURN))
+      nextPlayer.status = Status.TAKING_TURN
       this.history.push(this.board)
       this.board = []
     }
@@ -203,20 +211,21 @@ export default class Game {
     this.board = cards
   }
 
-  nextPlayer() {
-    const players = this.getPlayersInHand()
-    const activePlayer = players.find((seat) => seat?.active)
+  nextPlayer(player) {
+    const players = this.getPlayersInHand().sort((a, b) => a.seat - b.seat)
+    const activePlayer = players.find((p) => p?.seat === player.seat)
+
     // If the active player is the last in the array, we want to loop back to the first player, otherwise we just want to get the next player in the array
     const nextPlayerIndex = (players.indexOf(activePlayer) + 1) % players.length
     const nextPlayer = players[nextPlayerIndex]
 
-    players.forEach((player) => (player.active = false))
-    this.updatePlayer(nextPlayer, { active: true })
+    this.updatePlayer(nextPlayer, { status: Status.TAKING_TURN })
+    return nextPlayer
   }
 
   allPlayersPassed() {
     const playersInHand = this.getPlayersInHand()
-    const passedCount = playersInHand.filter((player) => player.passed).length
+    const passedCount = playersInHand.filter((player) => player.status === Status.PASSED).length
 
     return passedCount === playersInHand.length - 1
   }
@@ -235,11 +244,9 @@ export default class Game {
     this.history = []
     this.inProgress = false
 
-    for (const player of this.getReadyPlayers()) {
+    for (const player of this.getPlayersSat()) {
       player.hand = []
-      player.inHand = false
-      player.active = false
-      player.passed = false
+      player.status = Status.READY
     }
   }
 

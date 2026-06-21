@@ -29,12 +29,22 @@ class GameManager {
     game.seatPlayer(player, seat)
   }
 
+  unseatPlayer(room, seat, player) {
+    const game = this.games[room]
+
+    if (!game.playerIsSat(player)) {
+      throw new Error(`Player is not seated at ${room}`)
+    }
+
+    game.unseatPlayer(player)
+  }
+
   addPlayer(room, player) {
     this.games[room].addPlayer(player)
   }
 
   playCards(room, player, cards) {
-    if (this.games[room].playerActive(player)) {
+    if (this.games[room].isPlayersTurn(player)) {
       this.games[room].playCard(player, cards)
     } else {
       throw new Error("Player is not active")
@@ -72,7 +82,7 @@ class GameManager {
         key,
         {
           inProgress: game.inProgress,
-          players: game.getNumberOfPlayersSat().length,
+          players: game.getNumberOfPlayersSat(),
         },
       ]),
     )
@@ -85,12 +95,12 @@ class GameManager {
     return this.games[room].isInProgress()
   }
 
-  playerReady(room, player, status) {
-    this.games[room].setPlayerReady(player, status)
+  playerReady(room, player, ready) {
+    this.games[room].setPlayerReady(player, ready)
   }
 
   getPlayersInHand(room) {
-    return this.games[room].getPlayersInHand()
+    return Object.values(this.games[room].getPlayersInHand())
   }
 
   getReadyPlayers(room) {
